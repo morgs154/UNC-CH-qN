@@ -1,37 +1,3 @@
-/** @file basicsimulation.cpp
-*
-*   Copyright (C) 2006 Frederic Guillaume    <guillaum@zoology.ubc.ca>
-*   Copyright (C) 2008 Samuel Neuenschwander <samuel.neuenschwander@unil.ch>
-*
-*   quantiNEMO:
-*   quantiNEMO is an individual-based, genetically explicit stochastic
-*   simulation program. It was developed to investigate the effects of
-*   selection, mutation, recombination, and drift on quantitative traits
-*   with varying architectures in structured populations connected by
-*   migration and located in a heterogeneous habitat.
-*
-*   quantiNEMO is built on the evolutionary and population genetics
-*   programming framework NEMO (Guillaume and Rougemont, 2006, Bioinformatics).
-*
-*
-*   Licensing:
-*   This file is part of quantiNEMO.
-*
-*   quantiNEMO is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   quantiNEMO is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with quantiNEMO.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
 #include "basicsimulation.h"
 #include "output.h"
 
@@ -45,17 +11,17 @@ void ComponentManager::build_component_list ()
   list< TTraitProto* >::iterator TT_it = _TTrait_Templates.begin();
 
   while(TT_it != _TTrait_Templates.end()) {
-    _components.push_back( (*TT_it) );
+    _components.push_back( (*TT_it) ); //push_back adds item to end of list/vector
     TT_it++;
   }
 
-  list< LCE* >::iterator LCE_it = _LCE_Templates.begin();
+  list< LCE* >::iterator LCE_it = _LCE_Templates.begin(); //LCE = something about the population, life cycles?
 
   while(LCE_it != _LCE_Templates.end()) {
     _components.push_back( (*LCE_it) );
     LCE_it++;
-  }
-}
+    //looks for traits user wants to use in qN's database of available traits
+    }
 //----------------------------------------------------------------------------------------
 // get_trait_template
 // ----------------------------------------------------------------------------------------
@@ -69,6 +35,7 @@ TTraitProto* ComponentManager::get_trait_template (string& name)
   }
 
   return NULL;
+  //if cannot find trait or it's corresponding template, return null
 }
 //----------------------------------------------------------------------------------------
 // get_LCE_template
@@ -83,6 +50,7 @@ LCE* ComponentManager::get_LCE_template (string& name)
   }
 
   return NULL;
+  // if cannot find LCE or its correct template from database, return null
 }
 /*/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/*/
 
@@ -110,6 +78,8 @@ ParamManager::ParamManager()
   // simulation
   _paramSet.add_param("replicates",INT2,false,false,0,0,"1");
   _paramSet.add_param("generations",INT2,true,false,0,0,"0");
+  
+  //sets basic parameters qN always checks for and some basic defaults for outputs and file location
 }
 
 // ---------------------------------------------------------------------------------------
@@ -118,6 +88,7 @@ ParamManager::~ParamManager ( ) {
   #ifdef _DEBUG
    message(" ParamManager::~ParamManager (%i ParamSets)\n", _allParams.size());
   #endif
+  //if does not have needed parameters than destructs
 }
 
 //----------------------------------------------------------------------------------------
@@ -134,6 +105,7 @@ void ParamManager::build_allParams ()
     _allParams.push_back( (*cmpt)->get_paramset() );
     cmpt++;
   }
+  //clears previous parameters and adds in parameters for current run
 }
 
 //----------------------------------------------------------------------------------------
@@ -145,6 +117,7 @@ void ParamManager::reset_params ()
   for(; pos != _allParams.end(); ++pos){
     (*pos)->reset();
   }
+  //goes through parameters and ensures that simulation starts at the beginning
 }
 
 //----------------------------------------------------------------------------------------
@@ -165,13 +138,13 @@ bool ParamManager::param_consistency_check ()
     current_paramset++;
   }
   return check;
+  //goes through parameters given by user and makes sure their names (spellings, etc) match qN's database, if not then throws error
 }
 //----------------------------------------------------------------------------------------
 // set_parameters
 // ----------------------------------------------------------------------------------------
-/** check if the input parameters are really parameters
-  * same function as below, but for another type of container
-  */
+// checks if the input parameters are really parameters-same function as below, but for another type of container
+  
 void
 ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
 {
@@ -185,7 +158,7 @@ ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
   int cur_number, number;
   string::size_type pos;
 
-  reset_params();     // all parameters are resetted ("set" is set to false)
+  reset_params();     // all parameters are reset ("set" is set to false)
 
   // 1: set all "precice" parameters
   for(input = inputParams.begin(); input != inputParams.end(); ++input) {
@@ -195,10 +168,10 @@ ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
 		for(cur_paramset = _allParams.begin(); cur_paramset != _allParams.end(); ++cur_paramset){
 			//cout << "\n" << (string&)input->first;
 			set |= (*cur_paramset)->set_param((string&)input->first, input->second[0]);
-      //is true if at least one paramset could set the param
+      //is true if at least one paramset could set the parameter
     }
 
-    // add it to the vector if the parameter was never used
+    // add it to the vector if the parameter was not used
     if(!set) notSetParams.push_back(input->first);
   }
 
@@ -218,10 +191,10 @@ ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
     if(number == my_NAN) continue;                                 // if the substring is not a number
 
     // it is a multiple trait:
-    // scroll through all the trait parameters and search the correct input parameter
+    // goes through all the trait parameters in database for the correct input parameter
     cur_param = (*cur_paramset)->getAllParams().begin();
     for(; cur_param != (*cur_paramset)->getAllParams().end(); ++cur_param){
-      if(cur_param->second->isSet()) continue;  // if the parameter is already set continue
+      if(cur_param->second->isSet()) continue;  // if the parameter is already set then continue
 
       // check if the parameter is grouped (i.e. the parameter has a lower number)
       // or finally no number (general parameter)
@@ -235,13 +208,13 @@ ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
         --cur_number;
       }
 
-      // if no input was found continue
+      // if no input was found then continue
       if(input == inputParams.end()) continue;
 
       // set the general parameter
       cur_param->second->set(input->second[0], *cur_paramset);
 
-      // remove this parameter from the not set vector
+      // remove this parameter from the 'not set' vector of unspecified parameters
       for(iterVec = notSetParams.begin(); iterVec != notSetParams.end(); ++iterVec){
         if(*iterVec== generalName){
           notSetParams.erase(iterVec);
@@ -251,9 +224,9 @@ ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
     }
   }
 
-  // output all not used input parameters and remove them from the map
+  // output=all not used input parameters, removes them from the map
   for(iterVec = notSetParams.begin(); iterVec != notSetParams.end(); ++iterVec){
-      warning("Settings file: parameter '%s' could not be set -> parameter is skipped!",(*iterVec).c_str());
+      warning("Settings file: parameter '%s' could not be set -> parameter is skipped!",(*iterVec).c_str()); //alerts user if inputted param could not be used
       assert(inputParams.find(*iterVec) != inputParams.end());
       inputParams.erase(inputParams.find(*iterVec));
   }
@@ -264,7 +237,8 @@ ParamManager::check_parameter_names (map<string, vector<string> >& inputParams)
 //----------------------------------------------------------------------------------------
 // set_parameters
 // ----------------------------------------------------------------------------------------
-/**  attribute the input to the parameters */
+// same as above but different container
+//  attribute the input to the parameters 
 bool ParamManager::set_parameters (map< string,string >& simparams)
 {
   _inputParams = simparams;
@@ -278,7 +252,7 @@ bool ParamManager::set_parameters (map< string,string >& simparams)
   int cur_number, number;
   string::size_type pos;
 
-  // 1: set all "precice" parameters
+  // 1: set all "precise" parameters
   for(input = _inputParams.begin(); input != _inputParams.end(); ++input) {
     set = false;
 
@@ -288,7 +262,7 @@ bool ParamManager::set_parameters (map< string,string >& simparams)
       //is true if at least one paramset could set the param
     }
 
-    // add it to the vector if the parameter was never used
+    // add it to the vector if the parameter was not used-assumes default
     if(!set) notSetParams.push_back(input->first);
   }
 
@@ -325,13 +299,13 @@ bool ParamManager::set_parameters (map< string,string >& simparams)
         --cur_number;
       }
 
-      // if no input was found continue
+      // if no input was found then continue
       if(input == _inputParams.end()) continue;
 
       // set the general parameter
       cur_param->second->set(input->second, *cur_paramset);
 
-      // remove this parameter from the not set vector
+      // remove this parameter from the 'not set' vector of unspecified parameters
       for(iterVec = notSetParams.begin(); iterVec != notSetParams.end(); ++iterVec){
         if(*iterVec== generalName){
           notSetParams.erase(iterVec);
@@ -369,12 +343,14 @@ ParamSet* ParamManager::get_paramset (string& name)
   }
 
   return NULL;
+  //compiles all used parameters with their values (used to protect data and for ease of finding)
 }
 
 //----------------------------------------------------------------------------------------
 // build_records
 // ----------------------------------------------------------------------------------------
-/** generates the individual simulation parameter sets if sequential parameters are used */
+// generates the individual simulation parameter sets if sequential parameters are used
+
 void ParamManager::build_records (map< string, vector<string> >& initParams)
 {
   map<string,string> params;
@@ -421,12 +397,12 @@ void ParamManager::build_records (map< string, vector<string> >& initParams)
           break;
 
 				case 1:
-					//the current param has one argument
+					//the current parameter has one argument (not a sequence)
           params[Pit->first] = Pit->second[0];
           break;
 
         default:
-          //the current param is a sequence param (ArgNb > 1)
+          //the current parameter is a sequence parameter (ArgNb > 1)
           //increase the index of the sequence parameter
           SeqParam++;
           //then compute the right argument to give to the current simulation record:
@@ -467,10 +443,10 @@ string ParamManager::setFilename(string& fstring,const unsigned int& sim,const u
 	string::size_type next;
   unsigned int index, i, size = args.size();
 
-  // control array that all parameters were used, i.e. that the file name is unique!
+  // control array that all parameters were used, i.e. that the file name is unique
   int* usedParams = new int[size];
   for(i=0; i<size; ++i){
-    usedParams[i] = 0;    // set it to false
+    usedParams[i] = 0;    // set it to false 
   }
 
   // parse the name
@@ -479,18 +455,18 @@ string ParamManager::setFilename(string& fstring,const unsigned int& sim,const u
 	while(next != string::npos){
     out += fstring.substr(cur, next-cur);
     tail = fstring.substr(next+1, string::npos);
-    index = (unsigned int) strtol(tail.c_str(),NULL,10);          // get the param number
+    index = (unsigned int) strtol(tail.c_str(),NULL,10);          // get the parameter number
     if(index > args.size()) fatal("too much arguments in filename!\n");
     digits = STRING::getNbDigits(index);
 
     out += args[index-1];
-    usedParams[index-1] = 1;    // this param was used
+    usedParams[index-1] = 1;    // this parameter was used
     cur = next + digits + 1;
     next = fstring.find('%',cur);  // get the next position
   }
   out += fstring.substr(cur, next-cur);
 
-  // control if all params were used
+  // control if all parameters were used
   for(i=0; i<size; ++i){
     if(!usedParams[i]) break;
   }
@@ -501,6 +477,7 @@ string ParamManager::setFilename(string& fstring,const unsigned int& sim,const u
   }
 
   return out;
+  //sets imulation output file for each run
 }
 
 // ----------------------------------------------------------------------------------------
@@ -525,6 +502,8 @@ SimBuilder::SimBuilder (const SimBuilder& SB)
 {
   fatal("SimBuilder::SimBuilder(const SimBuilder&) not used and thus not implemented yet!\n");
 }
+//crashes if not compiled correctly
+
 //----------------------------------------------------------------------------------------
 // get_current_trait
 // ----------------------------------------------------------------------------------------
@@ -538,6 +517,8 @@ TTraitProto* SimBuilder::get_current_trait (string type)
     return trait->second;
   else
     return NULL;
+    
+    //adds used traits to map until at end of input
 }
 //----------------------------------------------------------------------------------------
 // get_current_event
@@ -553,6 +534,8 @@ LCE* SimBuilder::get_current_event (string& name)
   }
 
   return NULL;
+  
+  //establishes base of life cycle for sumulated population
 }
 //----------------------------------------------------------------------------------------
 // build_currentParams
@@ -566,7 +549,7 @@ bool SimBuilder::build_currentParams (map< string,string >& simparams)
 
   list<ParamSet*>::iterator current_paramset = this->_allParams.begin();
 
-  //add all set parameters to the list of the current params:
+  //add all set parameters to the list of the current parameters:
   while(current_paramset != this->_allParams.end()){
     if((*current_paramset)->isSet()) {
       #ifdef _DEBUG
@@ -618,7 +601,7 @@ map< int, LCE* >& SimBuilder::build_currentLifeCycle()
 //----------------------------------------------------------------------------------------
 // checkLCEconsistency
 // ----------------------------------------------------------------------------------------
-/** check if the sequence of LCE makes sense */
+// check if the sequence of LCE makes sense
 bool
 SimBuilder::checkLCEconsistency(){
 
@@ -644,6 +627,7 @@ SimBuilder::checkLCEconsistency(){
   bool stop = false;
   iterLCE = _currentLifeCycle.begin(); // start with the first LCE
   while(!stop){
+  
     // check if the last and the first LCE correspond
     if(iterLCE == _currentLifeCycle.end()){
       stop = true;
@@ -653,7 +637,7 @@ SimBuilder::checkLCEconsistency(){
     // get the LCE
     curLCE = iterLCE->second;
 
-    // if a age class is required
+    // if an age class is required
     if(curLCE->requiredAgeClass()){
       // check if the required age class is available or if no age classes are needed
       if(!(availableAge & curLCE->requiredAgeClass())){
