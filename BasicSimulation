@@ -15,7 +15,7 @@ void ComponentManager::build_component_list ()
     TT_it++;
   }
 
-  list< LCE* >::iterator LCE_it = _LCE_Templates.begin(); //LCE = something about the population, life cycles?
+  list< LCE* >::iterator LCE_it = _LCE_Templates.begin(); //LCE = life cycle events
 
   while(LCE_it != _LCE_Templates.end()) {
     _components.push_back( (*LCE_it) );
