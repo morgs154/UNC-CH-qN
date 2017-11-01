@@ -1,0 +1,5 @@
+List of files of qN source code and a brief description of what they contain
+
+Basic Simulation ................... Checks basic trait and life cycle parameters to make qN runnable, compiles used and unused traits
+                                     (defaults) to begin building the simulation
+                                     
