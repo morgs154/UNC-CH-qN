@@ -1,0 +1,32 @@
+/** @file fileparser.h
+*/
+
+#ifndef fileparserH
+#define fileparserH
+
+#include "output.h"
+
+
+/**Text input parameter file parser.
+ * This class provides the StreamParser with the whole content of the input file.
+ */
+class FileParser {
+
+public:
+  FileParser() {}
+  virtual ~FileParser(){}
+
+  map<string, vector<string> >&  read(string name, string dir="");
+  bool read(istream& stream);
+  map<string, vector< string> >& get_parsedParams() {return _parsedParams;}
+
+
+private:
+  map< string, vector< string > > _parsedParams;
+  string readArguments(istream & IN, int& linecnt, char& c, string end, bool&);
+	void add_parsedParam (string& param, const vector<string>& argvect);
+
+	string _dir;
+
+};
+#endif
