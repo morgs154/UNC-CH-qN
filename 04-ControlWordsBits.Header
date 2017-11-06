@@ -2,7 +2,7 @@
 ///@{
 
 /// \file controlw.h
-/// Control word class.
+/// Control word class
 /// Manipulate bits used for setting options.
 
 
