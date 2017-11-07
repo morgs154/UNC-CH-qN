@@ -3,7 +3,22 @@ List of files of qN source code and a brief description of what they contain
 Basic Simulation ................... Checks basic trait and life cycle parameters to make qN runnable, compiles used and unused traits/LCE
                                      (defaults) to begin building the simulation
                                      
-Simulation Components .............. Manages components of simulations and trait and life cycle input and sets of parameters (not a 
+BasicSim.Header .................... Manages components of simulations and trait and life cycle input and sets of parameters (not a 
                                      runnable simulation)
-                                  
-                                     
+  
+ControlWordsBits.Header ............ Used to create and manipulate settings options by converting between bits and int
+
+Cholesky ........................... Cholesky decomposition algorithm for a symmetric matrix
+
+File Handler ....................... Checks needed parameters to run, sets file path in directory, composes data for allele/loci/
+                                     indiv/patch, and ends simulation
+
+File Handler.Header ................ I/O Interfeace for BasicSim, focus on periodic parameters and outputs, sets handler parameters
+
+File Parser ........................ Reads in and adds parameter w/ argument to map, ends program if settings/ext/parameter cannot be read
+
+File Parser.Header ................. Reads in input and passes it to Steam Parser, contians paramters of FileParser
+
+File Services ...................... Outputs log file for sim-records parameters
+
+File Services.Header
