@@ -1,0 +1,28 @@
+/** @file handler.h
+*
+*/
+
+#ifndef handlerH
+#define handlerH
+
+/**Service handler (an observer).
+ * Interface for the FileHandler and StatHandler classes.
+ */
+class Handler {
+
+public:
+  /**Inits state. */
+  virtual bool init ( ) = 0;
+
+	/**Updates the handler state.  */
+	virtual void  update () = 0;
+
+	/**Updates the current populated patches (used only to compute stats).  */
+	virtual void update_patch_states(){};
+
+  //virtual char getName() = 0;
+
+  virtual ~Handler ( ) { }
+};
+#endif //HANDLER_H
+
