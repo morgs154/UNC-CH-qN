@@ -6,6 +6,8 @@ Basic Simulation ................... Checks basic trait and life cycle parameter
 BasicSim.Header .................... Manages components of simulations and trait and life cycle input and sets of parameters (not a 
                                      runnable simulation)
   
+Bandwidth Matrix ................... Adding matricies together, resizing, conversions, regulating bandwidth use to maximize time/memory
+
 ControlWordsBits.Header ............ Used to create and manipulate settings options by converting between bits and int
 
 Cholesky ........................... Cholesky decomposition algorithm for a symmetric matrix
@@ -21,4 +23,17 @@ File Parser.Header ................. Reads in input and passes it to Steam Parse
 
 File Services ...................... Outputs log file for sim-records parameters
 
-File Services.Header
+File Services.Header ............... Composes output files, saves parameters, checks file names, loads/attaches filehandlers
+
+Handler.Header ..................... Observer for FileHandler and StatHandler, initializes state, updates handler state, and patch pop
+                                     to compute stas in StatHandler
+                                     
+File HHolder ....................... QR, QRZ and QRT decompositions of matricies, updates/extends othagonal functtion
+
+Include.Header ..................... Gen library of required include folders-exceptions, data types, standardlibraries, different operating
+                                     systems, sets basics of headers, math, time
+                                 
+IndFactory ........................ Creates prototype of metapop, creates individual/offspring according to parameters  
+
+IndFactory.Header ................. Stores prototype info of individual/traits in map, recycles unused indivs
+
