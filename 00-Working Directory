@@ -1,7 +1,7 @@
 List of files of qN source code and a brief description of what they contain
 
-Basic Simulation ................... Checks basic trait and life cycle parameters to make qN runnable, compiles used and unused traits/LCE
-                                     (defaults) to begin building the simulation
+Basic Simulation ................... Checks basic trait and life cycle parameters to make qN runnable, compiles used and unused 
+                                     traits/LCE (defaults) to begin building the simulation
                                      
 BasicSim.Header .................... Manages components of simulations and trait and life cycle input and sets of parameters (not a 
                                      runnable simulation)
@@ -17,7 +17,7 @@ File Handler ....................... Checks needed parameters to run, sets file 
 
 File Handler.Header ................ I/O Interfeace for BasicSim, focus on periodic parameters and outputs, sets handler parameters
 
-File Parser ........................ Reads in and adds parameter w/ argument to map, ends program if settings/ext/parameter cannot be read
+File Parser ........................ Reads in and adds parameter w/ argument to map, ends program if settings/ext/param cannot be read
 
 File Parser.Header ................. Reads in input and passes it to Steam Parser, contians paramters of FileParser
 
@@ -30,8 +30,8 @@ Handler.Header ..................... Observer for FileHandler and StatHandler, i
                                      
 File HHolder ....................... QR, QRZ and QRT decompositions of matricies, updates/extends othagonal functtion
 
-Include.Header ..................... Gen library of required include folders-exceptions, data types, standardlibraries, different operating
-                                     systems, sets basics of headers, math, time
+Include.Header ..................... Gen library of required include folders-exceptions, data types, standardlibraries, different 
+                                     operating systems, sets basics of headers, math, time
                                  
 IndFactory ........................ Creates prototype of metapop, creates individual/offspring according to parameters  
 
@@ -45,4 +45,27 @@ Individual.Header ................. Interface for Indiv, accounts for traits, fe
 LCE Breed ......................... Mating Function-random, full/partial polygyny, monogamy, selfing; Selection at rep and for newborn,
                                     sex ratios, breeding sel at patch and metapop, pop size regulation
                                     
-LCE Breed.Header .................. Adds in fecundity, mating system/proportions, mating/breeding systems,                                     
+LCE Breed.Header .................. Adds in fecundity, mating system/proportions, mating/breeding systems                                     
+
+LCE Dispersal ..................... Takes in user parameters, dispersal matricies, patch migration demography, if sex-specific, island
+                                    migration model, edge patches, stepping stone, logistic params
+                                    
+LCE Dispersal.Header .............. Stores dispersal matricies/param/model, moves offspring to patch containers
+
+LCE Misc .......................... Notifies File/Stat Services, loop through gens and sum occurrances, temporal changes, aging, patch
+                                    extinction, reg sel/K, prints Stats
+                                    
+LCE Misc.Header ................... Interface notifies file handlers to update for output, reg poppost-dispersal, removes adults from
+                                    their patch containers, extinctions
+                                    
+LCE.Header ........................ Explanation of LCE, can link LCE to trait
+
+Main .............................. Sets up simulation display, runtime errors
+
+Meta Pop .......................... Initialize variables, add in parameters-K, size, enviro, sel, temporal changes, patch value/matrix
+                                    LCE, replicate loop, density dep disp, (K/sel sex specific); genetic map output, Fstats, counters  
+
+
+
+
+
