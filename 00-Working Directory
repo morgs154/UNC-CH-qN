@@ -37,3 +37,12 @@ IndFactory ........................ Creates prototype of metapop, creates indivi
 
 IndFactory.Header ................. Stores prototype info of individual/traits in map, recycles unused indivs
 
+Individual ........................ Using initial parameters, customizes, clones, inherits to create individual
+
+Individual.Header ................. Interface for Indiv, accounts for traits, fecundity, mating events w/in and b/w patches, trait
+                                    values/fitness, recomb/mutation, inheritance
+                        
+LCE Breed ......................... Mating Function-random, full/partial polygyny, monogamy, selfing; Selection at rep and for newborn,
+                                    sex ratios, breeding sel at patch and metapop, pop size regulation
+                                    
+LCE Breed.Header .................. Adds in fecundity, mating system/proportions, mating/breeding systems,                                     
