@@ -57,14 +57,34 @@ LCE Misc .......................... Notifies File/Stat Services, loop through ge
                                     
 LCE Misc.Header ................... Interface notifies file handlers to update for output, reg poppost-dispersal, removes adults from
                                     their patch containers, extinctions
-                                    
+
 LCE.Header ........................ Explanation of LCE, can link LCE to trait
 
 Main .............................. Sets up simulation display, runtime errors
 
-Meta Pop .......................... Initialize variables, add in parameters-K, size, enviro, sel, temporal changes, patch value/matrix
+MetaPop .......................... Initialize variables, add in parameters-K, size, enviro, sel, temporal changes, patch value/matrix
                                     LCE, replicate loop, density dep disp, (K/sel sex specific); genetic map output, Fstats, counters  
 
+MetaPop.Header ................... Loops of LCE, generations, and replicates, index of age classes, selection values, builds pop from
+                                    SimBuilder, tracks age and sex classes
+                                    
+MetaPop Stat Handler ............. Patch extinction accounting for fecundity, migrations, fitness; demography values; relatedness;
+                                   migrations and proportion to residents; fitness variance
+                                   
+MetaPop Stat Handler.Header ...... Declares varibales for migration, demography, kinship, fitness, extinctions
+
+MTRand ........................... Mersenne Twister Random number generator, initialize and generate numbers
+
+MTRand.Header .................... Declares various constructors w/ seeds, use bits to gen ints, open intervals
+
+Exception Handler ................ Throws exceptions for simulation, tracer, base class to derived class, stack, Janitor, run time error,
+                                   various logic errors, 
+
+Exception Handler.Header ......... Defines exception designs (try, throw, catch), derive from BaseException, Janitor class, checks
+                                   classes/arrays/objects, some runtime/logic errors
+                                   
+Newmat ........................... Newmat matrix manipuation library- defines matrix segments, math functions; locate code not used by
+                                   tests; matrix types and conversions, routines; working classes for matrices, reverse order
 
 
 
