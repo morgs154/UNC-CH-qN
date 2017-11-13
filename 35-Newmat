@@ -215,9 +215,11 @@ public:
    MatrixBandWidth operator*(const MatrixBandWidth&) const;
    MatrixBandWidth minimum(const MatrixBandWidth&) const;
    MatrixBandWidth t() const { return MatrixBandWidth(upper_val,lower_val); }
+   
    bool operator==(const MatrixBandWidth& bw) const
       { return (lower_val == bw.lower_val) && (upper_val == bw.upper_val); }
    bool operator!=(const MatrixBandWidth& bw) const { return !operator==(bw); }
+   
    int Upper() const { return upper_val; }
    int upper() const { return upper_val; }
    int Lower() const { return lower_val; }
@@ -603,6 +605,7 @@ public:
    //virtual bool SameStorageType(const GeneralMatrix& A) const;
    //virtual void ReSizeForAdd(const GeneralMatrix& A, const GeneralMatrix& B);
    //virtual void ReSizeForSP(const GeneralMatrix& A, const GeneralMatrix& B);
+   
    virtual void resize(const GeneralMatrix& A);
    virtual void ReSize(const GeneralMatrix& A) { resize(A); }
    MatrixInput operator<<(double);                // for loading a list
@@ -975,6 +978,7 @@ public:
    DiagonalMatrix(const BaseMatrix&);
    DiagonalMatrix(const DiagonalMatrix& gm)
       : GeneralMatrix() { GetMatrix(&gm); }
+      
    void operator=(const BaseMatrix&);
    void operator=(Real f) { GeneralMatrix::operator=(f); }
    void operator=(const DiagonalMatrix& m) { Eq(m); }
@@ -1232,9 +1236,11 @@ public:
       { CornerClear(); return GeneralMatrix::maximum_absolute_value(); }
    Real minimum_absolute_value() const
       { int i, j; return GeneralMatrix::minimum_absolute_value2(i, j); }
+   Real maximum() const 
+      { int i, j; return GeneralMatrix::maximum2(i, j); }
+   Real minimum() const 
+      { int i, j; return GeneralMatrix::minimum2(i, j); }
       
-   Real maximum() const { int i, j; return GeneralMatrix::maximum2(i, j); }
-   Real minimum() const { int i, j; return GeneralMatrix::minimum2(i, j); }
    void GetRow(MatrixRowCol&);
    void GetCol(MatrixRowCol&);
    void GetCol(MatrixColX&);
@@ -1246,6 +1252,7 @@ public:
    virtual void ReSize(int m, int n, int b) { resize(m, n, b); }
    void resize(const GeneralMatrix& A);
    void ReSize(const GeneralMatrix& A) { resize(A); }
+   
    //bool SameStorageType(const GeneralMatrix& A) const;
    //void ReSizeForAdd(const GeneralMatrix& A, const GeneralMatrix& B);
    //void ReSizeForSP(const GeneralMatrix& A, const GeneralMatrix& B);
@@ -1280,9 +1287,11 @@ public:
    void operator=(const BaseMatrix&);
    void operator=(Real f) { GeneralMatrix::operator=(f); }
    void operator=(const UpperBandMatrix& m) { Eq(m); }
+   
    MatrixType type() const;
    UpperBandMatrix(const UpperBandMatrix& gm) : BandMatrix() { GetMatrix(&gm); }
    GeneralMatrix* MakeSolver() { return this; }
+   
    void Solver(MatrixColX&, const MatrixColX&);
    LogAndSign log_determinant() const;
    void resize(int, int, int);             // change dimensions
@@ -1291,16 +1300,22 @@ public:
       { BandMatrix::resize(n,0,ubw); }
    void ReSize(int n,int ubw)              // change dimensions
       { BandMatrix::resize(n,0,ubw); }
-   void resize(const GeneralMatrix& A) { BandMatrix::resize(A); }
-   void ReSize(const GeneralMatrix& A) { BandMatrix::resize(A); }
+   void resize(const GeneralMatrix& A) 
+      { BandMatrix::resize(A); }
+   void ReSize(const GeneralMatrix& A) 
+      { BandMatrix::resize(A); }
+      
    Real& operator()(int, int);
    Real operator()(int, int) const;
    Real& element(int, int);
    Real element(int, int) const;
+   
+   
 #ifdef SETUP_C_SUBSCRIPTS
    Real* operator[](int m) { return store+upper_val*m; }
    const Real* operator[](int m) const { return store+upper_val*m; }
 #endif
+
    void swap(UpperBandMatrix& gm)
       { BandMatrix::swap((BandMatrix&)gm); }
    NEW_DELETE(UpperBandMatrix)
@@ -1316,12 +1331,15 @@ public:
    LowerBandMatrix(int n, int lbw)              // standard declaration
       : BandMatrix(n, lbw, 0) {}
    LowerBandMatrix(const BaseMatrix&);          // evaluate BaseMatrix
+   
    void operator=(const BaseMatrix&);
    void operator=(Real f) { GeneralMatrix::operator=(f); }
    void operator=(const LowerBandMatrix& m) { Eq(m); }
+   
    MatrixType type() const;
    LowerBandMatrix(const LowerBandMatrix& gm) : BandMatrix() { GetMatrix(&gm); }
    GeneralMatrix* MakeSolver() { return this; }
+   
    void Solver(MatrixColX&, const MatrixColX&);
    LogAndSign log_determinant() const;
    void resize(int, int, int);             // change dimensions
@@ -1332,14 +1350,18 @@ public:
       { BandMatrix::resize(n,lbw,0); }
    void resize(const GeneralMatrix& A) { BandMatrix::resize(A); }
    void ReSize(const GeneralMatrix& A) { BandMatrix::resize(A); }
+   
    Real& operator()(int, int);
    Real operator()(int, int) const;
    Real& element(int, int);
    Real element(int, int) const;
+   
+   
 #ifdef SETUP_C_SUBSCRIPTS
    Real* operator[](int m) { return store+lower_val*(m+1); }
    const Real* operator[](int m) const { return store+lower_val*(m+1); }
 #endif
+
    void swap(LowerBandMatrix& gm)
       { BandMatrix::swap((BandMatrix&)gm); }
    NEW_DELETE(LowerBandMatrix)
@@ -1351,12 +1373,14 @@ class SymmetricBandMatrix : public GeneralMatrix
    GeneralMatrix* Image() const;                // copy of matrix
    void CornerClear() const;                    // set unused elements to zero
    short SimpleAddOK(const GeneralMatrix* gm);
+   
 public:
    int lower_val;                                   // lower band width
    SymmetricBandMatrix() { lower_val=0; CornerClear(); }
    ~SymmetricBandMatrix() {}
    SymmetricBandMatrix(int n, int lb) { resize(n,lb); CornerClear(); }
    SymmetricBandMatrix(const BaseMatrix&);
+   
    void operator=(const BaseMatrix&);
    void operator=(Real f) { GeneralMatrix::operator=(f); }
    void operator=(const SymmetricBandMatrix& m) { Eq(m); }
@@ -1364,10 +1388,13 @@ public:
    Real& element(int, int);                     // access element
    Real operator()(int, int) const;             // access element
    Real element(int, int) const;                // access element
+   
+   
 #ifdef SETUP_C_SUBSCRIPTS
    Real* operator[](int m) { return store+lower_val*(m+1); }
    const Real* operator[](int m) const { return store+lower_val*(m+1); }
 #endif
+
    MatrixType type() const;
    SymmetricBandMatrix(const SymmetricBandMatrix& gm)
       : GeneralMatrix() { GetMatrix(&gm); }
@@ -1375,12 +1402,14 @@ public:
    Real sum_square() const;
    Real sum_absolute_value() const;
    Real sum() const;
+   
    Real maximum_absolute_value() const
       { CornerClear(); return GeneralMatrix::maximum_absolute_value(); }
    Real minimum_absolute_value() const
       { int i, j; return GeneralMatrix::minimum_absolute_value2(i, j); }
    Real maximum() const { int i, j; return GeneralMatrix::maximum2(i, j); }
    Real minimum() const { int i, j; return GeneralMatrix::minimum2(i, j); }
+   
    Real trace() const;
    LogAndSign log_determinant() const;
    void GetRow(MatrixRowCol&);
@@ -1388,14 +1417,17 @@ public:
    void GetCol(MatrixColX&);
    void RestoreCol(MatrixRowCol&) {}
    void RestoreCol(MatrixColX&);
+   
    GeneralMatrix* Transpose(TransposedMatrix*, MatrixType);
    void resize(int,int);                       // change dimensions
    void ReSize(int m,int b) { resize(m, b); }
    void resize(const GeneralMatrix& A);
    void ReSize(const GeneralMatrix& A) { resize(A); }
+   
    //bool SameStorageType(const GeneralMatrix& A) const;
    //void ReSizeForAdd(const GeneralMatrix& A, const GeneralMatrix& B);
    //void ReSizeForSP(const GeneralMatrix& A, const GeneralMatrix& B);
+   
    MatrixBandWidth bandwidth() const;
    void SetParameters(const GeneralMatrix*);
    void operator<<(const double* r);              // will give error
@@ -1418,11 +1450,13 @@ class BandLUMatrix : public GeneralMatrix
    void ludcmp();
    void get_aux(BandLUMatrix&);                 // for copying indx[] etc
    GeneralMatrix* Image() const;                // copy of matrix
+   
 public:
    BandLUMatrix(const BaseMatrix&);
    BandLUMatrix()
      : indx(0), d(true), sing(true), store2(0), storage2(0), m1(0), m2(0) {}
    BandLUMatrix(const BandLUMatrix&);
+   
    void operator=(const BandLUMatrix&);
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
    MatrixType type() const;
@@ -1430,16 +1464,19 @@ public:
    ~BandLUMatrix();
    GeneralMatrix* MakeSolver() { return this; } // for solving
    LogAndSign log_determinant() const;
+   
    void Solver(MatrixColX&, const MatrixColX&);
    void GetRow(MatrixRowCol&);
    void GetCol(MatrixRowCol&);
    void GetCol(MatrixColX& c) { GetCol((MatrixRowCol&)c); }
    void cleanup();                                // to clear store
    void MiniCleanUp();
+   
    bool IsEqual(const GeneralMatrix&) const;
    bool is_singular() const { return sing; }
    bool IsSingular() const { return sing; }
    const Real* const_data2() const { return store2; }
+   
    int size2() const { return storage2; }
    const int* const_data_indx() const { return indx; }
    bool even_exchanges() const { return d; }
@@ -1462,6 +1499,7 @@ public:
    IdentityMatrix(const IdentityMatrix& gm)
       : GeneralMatrix() { GetMatrix(&gm); }
    IdentityMatrix(const BaseMatrix&);
+   
    void operator=(const BaseMatrix&);
    void operator=(const IdentityMatrix& m) { Eq(m); }
    void operator=(Real f) { GeneralMatrix::operator=(f); }
@@ -1478,9 +1516,11 @@ public:
    void NextRow(MatrixRowCol&);
    void NextCol(MatrixRowCol&);
    void NextCol(MatrixColX&);
+   
    GeneralMatrix* MakeSolver() { return this; } // for solving
    void Solver(MatrixColX&, const MatrixColX&);
    GeneralMatrix* Transpose(TransposedMatrix*, MatrixType);
+   
    void resize(int n);
    void ReSize(int n) { resize(n); }
    void resize(const GeneralMatrix& A);
@@ -1493,8 +1533,6 @@ public:
 };
 
 
-
-
 // ************************** GenericMatrix class ************************/
 
 /// A matrix which can be of any GeneralMatrix type.
@@ -1503,12 +1541,14 @@ class GenericMatrix : public BaseMatrix
    GeneralMatrix* gm;
    int search(const BaseMatrix* bm) const;
    friend class BaseMatrix;
+   
 public:
    GenericMatrix() : gm(0) {}
    GenericMatrix(const BaseMatrix& bm)
       { gm = ((BaseMatrix&)bm).Evaluate(); gm = gm->Image(); }
    GenericMatrix(const GenericMatrix& bm) : BaseMatrix()
       { gm = bm.gm->Image(); }
+      
    void operator=(const GenericMatrix&);
    void operator=(const BaseMatrix&);
    void operator+=(const BaseMatrix&);
@@ -1520,10 +1560,12 @@ public:
    void operator-=(Real r) { operator+=(-r); }
    void operator*=(Real);
    void operator/=(Real r) { operator*=(1.0/r); }
+   
    ~GenericMatrix() { delete gm; }
    void cleanup() { delete gm; gm = 0; }
    void Release() { gm->Release(); }
    void release() { gm->release(); }
+   
    GeneralMatrix* Evaluate(MatrixType = MatrixTypeUnSp);
    MatrixBandWidth bandwidth() const;
    void swap(GenericMatrix& x);
@@ -1542,12 +1584,14 @@ protected:
    union { const BaseMatrix* bm1; GeneralMatrix* gm1; };
 						  // pointers to summands
    union { const BaseMatrix* bm2; GeneralMatrix* gm2; };
+   
    MultipliedMatrix(const BaseMatrix* bm1x, const BaseMatrix* bm2x)
       : bm1(bm1x),bm2(bm2x) {}
    int search(const BaseMatrix*) const;
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~MultipliedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1566,6 +1610,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~AddedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1584,6 +1629,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~SPMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1605,6 +1651,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~KPMatrix() {}
    MatrixBandWidth bandwidth() const;
@@ -1624,6 +1671,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~ConcatenatedMatrix() {}
    MatrixBandWidth bandwidth() const;
@@ -1642,6 +1690,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~StackedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1656,6 +1705,7 @@ class SolvedMatrix : public MultipliedMatrix
       : MultipliedMatrix(bm1x,bm2x) {}
    friend class BaseMatrix;
    friend class InvertedMatrix;                        // for operator*
+   
 public:
    ~SolvedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1672,6 +1722,7 @@ class SubtractedMatrix : public AddedMatrix
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~SubtractedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1690,6 +1741,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~ShiftedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1706,6 +1758,7 @@ protected:
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~NegShiftedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1721,6 +1774,7 @@ class ScaledMatrix : public ShiftedMatrix
    friend class BaseMatrix;
    friend class GeneralMatrix;
    friend class GenericMatrix;
+   
 public:
    ~ScaledMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1737,8 +1791,10 @@ protected:
    union { const BaseMatrix* bm; GeneralMatrix* gm; };
    NegatedMatrix(const BaseMatrix* bmx) : bm(bmx) {}
    int search(const BaseMatrix*) const;
+   
 private:
    friend class BaseMatrix;
+   
 public:
    ~NegatedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1752,6 +1808,7 @@ class TransposedMatrix : public NegatedMatrix
 {
    TransposedMatrix(const BaseMatrix* bmx) : NegatedMatrix(bmx) {}
    friend class BaseMatrix;
+   
 public:
    ~TransposedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1765,6 +1822,7 @@ class ReversedMatrix : public NegatedMatrix
 {
    ReversedMatrix(const BaseMatrix* bmx) : NegatedMatrix(bmx) {}
    friend class BaseMatrix;
+   
 public:
    ~ReversedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1776,6 +1834,7 @@ public:
 class InvertedMatrix : public NegatedMatrix
 {
    InvertedMatrix(const BaseMatrix* bmx) : NegatedMatrix(bmx) {}
+   
 public:
    ~InvertedMatrix() {}
    SolvedMatrix operator*(const BaseMatrix&) const;       // inverse(A) * B
@@ -1792,6 +1851,7 @@ class RowedMatrix : public NegatedMatrix
 {
    RowedMatrix(const BaseMatrix* bmx) : NegatedMatrix(bmx) {}
    friend class BaseMatrix;
+   
 public:
    ~RowedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1805,6 +1865,7 @@ class ColedMatrix : public NegatedMatrix
 {
    ColedMatrix(const BaseMatrix* bmx) : NegatedMatrix(bmx) {}
    friend class BaseMatrix;
+   
 public:
    ~ColedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1818,6 +1879,7 @@ class DiagedMatrix : public NegatedMatrix
 {
    DiagedMatrix(const BaseMatrix* bmx) : NegatedMatrix(bmx) {}
    friend class BaseMatrix;
+   
 public:
    ~DiagedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1833,6 +1895,7 @@ class MatedMatrix : public NegatedMatrix
    MatedMatrix(const BaseMatrix* bmx, int nrx, int ncx)
       : NegatedMatrix(bmx), nr(nrx), nc(ncx) {}
    friend class BaseMatrix;
+   
 public:
    ~MatedMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1846,6 +1909,7 @@ class ReturnMatrix : public BaseMatrix
 {
    GeneralMatrix* gm;
    int search(const BaseMatrix*) const;
+   
 public:
    ~ReturnMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
@@ -1876,12 +1940,14 @@ class GetSubMatrix : public NegatedMatrix
       row_skip(rs), row_number(rn), col_skip(cs), col_number(cn), IsSym(is) {}
    void SetUpLHS();
    friend class BaseMatrix;
+   
 public:
    GetSubMatrix(const GetSubMatrix& g)
       : NegatedMatrix(g.bm), row_skip(g.row_skip), row_number(g.row_number),
       col_skip(g.col_skip), col_number(g.col_number), IsSym(g.IsSym) {}
    ~GetSubMatrix() {}
    GeneralMatrix* Evaluate(MatrixType mt=MatrixTypeUnSp);
+   
    void operator=(const BaseMatrix&);
    void operator+=(const BaseMatrix&);
    void operator-=(const BaseMatrix&);
@@ -1890,9 +1956,11 @@ public:
    void operator<<(const double*);                // copy from array
    void operator<<(const float*);                // copy from array
    void operator<<(const int*);                 // copy from array
+   
    MatrixInput operator<<(double);                // for loading a list
    MatrixInput operator<<(float);                // for loading a list
    MatrixInput operator<<(int f);
+   
    void operator=(Real);                        // copy from constant
    void operator+=(Real);                       // add constant
    void operator-=(Real r) { operator+=(-r); }  // subtract constant
@@ -1915,6 +1983,7 @@ class LinearEquationSolver : public BaseMatrix
    GeneralMatrix* gm;
    int search(const BaseMatrix*) const { return 0; }
    friend class BaseMatrix;
+   
 public:
    LinearEquationSolver(const BaseMatrix& bm);
    ~LinearEquationSolver() { delete gm; }
@@ -1934,6 +2003,7 @@ class MatrixInput
 {
    int n;                  // number values still to be read
    Real* r;                // pointer to next location to be read to
+   
 public:
    MatrixInput(const MatrixInput& mi) : n(mi.n), r(mi.r) {}
    MatrixInput(int nx, Real* rx) : n(nx), r(rx) {}
@@ -1943,8 +2013,6 @@ public:
    MatrixInput operator<<(int f);
    friend class GeneralMatrix;
 };
-
-
 
 // **************** a very simple integer array class ********************/
 
@@ -1958,12 +2026,14 @@ class SimpleIntArray : public Janitor
 protected:
    int* a;                    ///< pointer to the array
    int n;                     ///< length of the array
+   
 public:
    SimpleIntArray(int xn);    ///< build an array length xn
    SimpleIntArray() : a(0), n(0) {}  ///< build an array length 0
    ~SimpleIntArray();         ///< return the space to memory
    int& operator[](int i);    ///< access element of the array - start at 0
    int operator[](int i) const;
+   
 			      ///< access element of constant array
    void operator=(int ai);    ///< set the array equal to a constant
    void operator=(const SimpleIntArray& b);
@@ -1974,6 +2044,7 @@ public:
 			      ///< return the size of the array
    int size() const { return n; }
 			      ///< return the size of the array
+			      
    int* Data() { return a; }  ///< pointer to the data
    const int* Data() const { return a; }  ///< pointer to the data
    int* data() { return a; }  ///< pointer to the data
@@ -2195,6 +2266,7 @@ inline Real determinant(const BaseMatrix& B)
    { return B.determinant(); }
 inline Real Determinant(const BaseMatrix& B)
    { return B.determinant(); }
+   
 inline Real sum_square(const BaseMatrix& B) { return B.sum_square(); }
 inline Real SumSquare(const BaseMatrix& B) { return B.sum_square(); }
 inline Real norm_Frobenius(const BaseMatrix& B) { return B.norm_Frobenius(); }
@@ -2202,6 +2274,7 @@ inline Real norm_frobenius(const BaseMatrix& B) { return B.norm_Frobenius(); }
 inline Real NormFrobenius(const BaseMatrix& B) { return B.norm_Frobenius(); }
 inline Real trace(const BaseMatrix& B) { return B.trace(); }
 inline Real Trace(const BaseMatrix& B) { return B.trace(); }
+
 inline Real sum_absolute_value(const BaseMatrix& B)
    { return B.sum_absolute_value(); }
 inline Real SumAbsoluteValue(const BaseMatrix& B)
@@ -2218,6 +2291,7 @@ inline Real minimum_absolute_value(const BaseMatrix& B)
    { return B.minimum_absolute_value(); }
 inline Real MinimumAbsoluteValue(const BaseMatrix& B)
    { return B.minimum_absolute_value(); }
+   
 inline Real maximum(const BaseMatrix& B) { return B.maximum(); }
 inline Real Maximum(const BaseMatrix& B) { return B.maximum(); }
 inline Real minimum(const BaseMatrix& B) { return B.minimum(); }
