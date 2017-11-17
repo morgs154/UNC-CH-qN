@@ -1,5 +1,6 @@
 List of files of qN source code and a brief description of what they contain
 
+
 Basic Simulation ................... Checks basic trait and life cycle parameters to make qN runnable, compiles used and unused 
                                      traits/LCE (defaults) to begin building the simulation
                                      
@@ -123,7 +124,12 @@ Newmat Row/Column.Header ......... Declares classes used to access rows/columns,
 
 Newmat Rect Op ................... Rectangular matrix operations-scaling,rotate, pythagorean theorem
 
-Newmat REct Op.Header ............ Declares classes and their methods
+Newmat Rect Op.Header ............ Declares classes and their methods
 
+
+
+X1-DMI    Set parameters for haploid and diploid, incompatibility table, load/set genotype/stat files, initates sequence, inheritance, 
+mutations, viability, LCE (initial, spatial pattens)
+X2 Header   Decares variables and methods(getters/setters), inheritance/mutation routines, record genotype to txt file, statHandler,initialize
 
 
