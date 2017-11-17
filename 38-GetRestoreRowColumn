@@ -93,7 +93,7 @@ void GeneralMatrix::NextRow(MatrixRowCol& mrc)
 
 void GeneralMatrix::NextCol(MatrixRowCol& mrc)
 {
-   REPORT                                                // 423
+   REPORT                                               
    if (+(mrc.cw*StoreOnExit)) { REPORT this->RestoreCol(mrc); }
    mrc.rowcol++;
    if (mrc.rowcol<ncols_val) { REPORT this->GetCol(mrc); }
@@ -102,7 +102,7 @@ void GeneralMatrix::NextCol(MatrixRowCol& mrc)
 
 void GeneralMatrix::NextCol(MatrixColX& mrc)
 {
-   REPORT                                                // 423
+   REPORT                                               
    if (+(mrc.cw*StoreOnExit)) { REPORT this->RestoreCol(mrc); }
    mrc.rowcol++;
    if (mrc.rowcol<ncols_val) { REPORT this->GetCol(mrc); }
@@ -165,10 +165,10 @@ void Matrix::GetCol(MatrixColX& mrc)
 void Matrix::RestoreCol(MatrixRowCol& mrc)
 {
    // always check StoreOnExit before calling RestoreCol
-   REPORT                                   // 429
+   REPORT                                   
    if (+(mrc.cw*HaveStore))
    {
-      REPORT                                // 426
+      REPORT                                
       Real* Mstore = store+mrc.rowcol; int i=nrows_val;
       Real* Cstore = mrc.data;
       // while (i--) { *Mstore = *Cstore++; Mstore+=ncols_val; }
@@ -186,11 +186,11 @@ void Matrix::RestoreCol(MatrixColX& mrc)
       { *Mstore = *Cstore++; if (!(--i)) break; Mstore+=ncols_val; }
 }
 
-void Matrix::NextRow(MatrixRowCol& mrc) { REPORT mrc.IncrMat(); }  // 1808
+void Matrix::NextRow(MatrixRowCol& mrc) { REPORT mrc.IncrMat(); }  
 
 void Matrix::NextCol(MatrixRowCol& mrc)
 {
-   REPORT                                        // 632
+   REPORT                                       
    if (+(mrc.cw*StoreOnExit)) { REPORT RestoreCol(mrc); }
    mrc.rowcol++;
    if (mrc.rowcol<ncols_val)
@@ -256,7 +256,7 @@ void DiagonalMatrix::GetCol(MatrixColX& mrc)
 }
 
 void DiagonalMatrix::NextRow(MatrixRowCol& mrc) { REPORT mrc.IncrDiag(); }
-                        // 800
+                        
 
 void DiagonalMatrix::NextCol(MatrixRowCol& mrc) { REPORT mrc.IncrDiag(); }
                         // not accessed
