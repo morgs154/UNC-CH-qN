@@ -1,0 +1,999 @@
+/**  $Id: ttbdmi.cc,v 1.6 2016-09-28 15:00:27 fred Exp $
+ *
+ *  @file ttbdmi.cc
+ *  Nemo2
+ *
+ *   Copyright (C) 2006-2015 Frederic Guillaume
+ *   frederic.guillaume@ieu.uzh.ch
+ *
+ *   This file is part of Nemo
+ *
+ *   Nemo is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Nemo is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *  Created on @date 21.12.2010
+ *  @author fred
+ */
+
+#include <sstream>
+#include "ttbdmi.h"
+
+unsigned int TProtoBDMI::_diploGenotTableCoding[3][3] = {{0,1,2},{3,4,5},{6,7,8}};
+unsigned int TT_BDMI::_haploGenotCoding[2][2] = {{0,1},{2,3}}; //fitnesses for locus pair (biallelic)
+unsigned int TT_BDMI::_diploGenotCoding[2][2] = {{0,1},{1,2}}; //single locus fitness values,
+                                                           //both heterozygotes have same fitness
+// ----------------------------------------------------------------------------------------
+// cstor
+// ----------------------------------------------------------------------------------------
+TProtoBDMI::TProtoBDMI() : 
+_type("dmi"), _isHaploid(1), _nb_locus(0), _mut_rate(0), _recomb_rate(0), _init_freq(0),
+_isInitSet(0), _inherit_func_ptr(0), _mutation_func_ptr(0), _viability_func_ptr(0),
+_genoTable(0), _writer(0), _stater(0)
+{
+  set_paramset("dmi", false, this);
+  
+  add_parameter("dmi_loci",INT,true,false, 0, 0);
+  add_parameter("dmi_is_haploid",BOOL,false,false, 0, 0);
+  add_parameter("dmi_mutation_rate",DBL,true,true, 0, 1, 0);
+  add_parameter("dmi_genot_table", MAT, true, 0, 0, 0);
+
+  //genetic map parameters:
+  TTProtoWithMap::addGeneticMapParameters("dmi");
+  
+  add_parameter("dmi_save_genotype", BOOL, false, false, 0, 0, 0);
+  add_parameter("dmi_logtime", INT, false, false, 0, 0);
+  add_parameter("dmi_output_dir", STR, false, false, 0, 0);
+
+}
+// ----------------------------------------------------------------------------------------
+// copy cstor
+// ----------------------------------------------------------------------------------------
+TProtoBDMI::TProtoBDMI(const TProtoBDMI& TP) : 
+_type("dmi"), _isHaploid(TP._isHaploid), _nb_locus(TP._nb_locus), _mut_rate(TP._mut_rate),
+_recomb_rate(TP._recomb_rate), _init_freq(0), _isInitSet(0), _inherit_func_ptr(TP._inherit_func_ptr),
+_mutation_func_ptr(TP._mutation_func_ptr), _viability_func_ptr(TP._viability_func_ptr),
+_genoTable(0), _writer(0), _stater(0)
+{
+  _paramSet = new ParamSet( *TP._paramSet );
+  
+  if(TP._genoTable) 
+    _genoTable = new TMatrix( *TP._genoTable );
+  else 
+    _genoTable = NULL;
+
+}
+// ----------------------------------------------------------------------------------------
+// dstor
+// ----------------------------------------------------------------------------------------
+TProtoBDMI::~TProtoBDMI()
+{
+  if(_genoTable) delete _genoTable; if(_stater) delete _stater; if(_writer) delete _writer;
+  if(_init_freq) delete [] _init_freq; 
+}
+
+// ----------------------------------------------------------------------------------------
+// setParameters
+// ----------------------------------------------------------------------------------------
+bool TProtoBDMI::setParameters ()
+{
+  _nb_locus = (unsigned int)get_parameter_value("dmi_loci");
+  _mut_rate = get_parameter_value("dmi_mutation_rate");
+  
+  if(get_parameter("dmi_is_haploid")->isSet())
+    _isHaploid = (bool)get_parameter_value("dmi_is_haploid");
+  else 
+    _isHaploid = 0; //diploid by default
+  
+  _genomic_mut_rate = _nb_locus * _mut_rate * (_isHaploid ? 1 : 2);
+  
+  if(_isHaploid){
+    _inherit_func_ptr =   &TT_BDMI::inherit_haplo;
+    _mutation_func_ptr =  &TT_BDMI::mutate_haplo;
+    _viability_func_ptr = &TT_BDMI::viability_haplo;
+  } else {
+    _inherit_func_ptr =   &TT_BDMI::inherit_diplo;
+    _mutation_func_ptr =  &TT_BDMI::mutate_diplo;
+    _viability_func_ptr = &TT_BDMI::viability_diplo;
+  }
+  
+  //setting the incompatibility table:
+  if(_genoTable) delete _genoTable;
+  
+  _genoTable = new TMatrix ();
+  
+  get_parameter("dmi_genot_table")->getMatrix(_genoTable);
+  
+  //@TODO add checks on size of genoTable!!
+  if(_isHaploid && _genoTable->getNbCols() != 4)
+    fatal("The genotype fitness table for DMI loci must have 4 columns in the haploid case.");
+  
+  if(!_isHaploid && _genoTable->getNbCols() != 9)
+    fatal("The genotype fitness table for DMI loci must have 9 columns in the diploid case.");
+  
+  
+  _isInitSet = 0;
+  
+#ifdef _DEBUG_
+  message("::TProtoBDMI::\nFitness table:\n");
+  showGenoTable(_nb_locus/2);
+#endif
+
+ return TTProtoWithMap::setGeneticMapParameters ("dmi");;
+}
+// ----------------------------------------------------------------------------------------
+// loadFileServices
+// ----------------------------------------------------------------------------------------
+void TProtoBDMI::loadFileServices  (FileServices* loader)
+{
+  //writer
+  if(get_parameter("dmi_save_genotype")->isSet()) {
+    
+    if(_writer == NULL) _writer = new TTBDMI_FH(this);
+    
+    Param* param = get_parameter("dmi_logtime");
+    
+    if(param->isMatrix()) {
+      
+      TMatrix temp;
+      param->getMatrix(&temp);
+      _writer->set_multi(true, true, 1, &temp, get_parameter("dmi_output_dir")->getArg());
+      
+    } else {      
+      //           rpl_per, gen_per, rpl_occ, gen_occ, rank, path, self-ref
+      _writer->set(true, true, 1, (param->isSet() ? (int)param->getValue() : 0),
+                   0, get_parameter("dmi_output_dir")->getArg(),this);
+    }
+    
+    loader->attach(_writer);
+    
+  } else if(_writer != NULL) {
+    delete _writer;
+    _writer = NULL;
+  }
+}
+// ----------------------------------------------------------------------------------------
+// loadStatServices
+// ----------------------------------------------------------------------------------------
+void TProtoBDMI::loadStatServices ( StatServices* loader ) 
+{
+  if(_stater != NULL) 
+    delete _stater;
+  
+  _stater = new TTBDMI_SH(this);
+  
+  loader->attach(_stater);
+}
+// ----------------------------------------------------------------------------------------
+// hatch
+// ----------------------------------------------------------------------------------------
+TTrait* TProtoBDMI::hatch ()
+{
+  TT_BDMI* chick = new TT_BDMI();
+  
+  chick->set_nb_locus(_nb_locus);
+  chick->set_mut_rate(_mut_rate);
+  chick->set_geno_rate(_genomic_mut_rate);
+  chick->set_isHaploid(_isHaploid);
+  chick->set_viability_func_ptr(_viability_func_ptr);
+  chick->set_mutation_func_ptr(_mutation_func_ptr);
+  chick->set_inherit_func_ptr(_inherit_func_ptr);
+  chick->set_proto (this);
+  return chick;
+}
+// ----------------------------------------------------------------------------------------
+// init_sequence
+// ----------------------------------------------------------------------------------------
+void TProtoBDMI::set_init_freq (double* val, unsigned int size)
+{
+  assert(size == _nb_locus);
+  
+  if(_init_freq) delete [] _init_freq;
+  
+  _init_freq = new double [size];
+  
+  memcpy(_init_freq, val, size*sizeof(double));
+
+  _isInitSet = true;
+}
+// ----------------------------------------------------------------------------------------
+// showGenoTable
+// ----------------------------------------------------------------------------------------
+void TProtoBDMI::showGenoTable (unsigned int nrows)
+{
+  unsigned int len = (_isHaploid ? 4 : 9);
+
+  if(_isHaploid)
+    cout << "AB\taB\tAb\tab\n";
+  else
+    cout << "AABB\tAaBB\taaBB\t AABb\tAaBb\taaBb\t AAbb\tAabb\taabb\n";
+  
+  for (unsigned int i = 0; i < nrows; ++i) {
+    cout << i+1 << ": ";
+    for (unsigned int j = 0; j < len ; ++j) {
+      cout << _genoTable->get(i, j) << "\t";
+    }
+  cout << endl;
+  }
+}
+// ----------------------------------------------------------------------------------------
+// inherit
+// ----------------------------------------------------------------------------------------
+inline void TProtoBDMI::inherit (sex_t SEX, bitstring* seq, bitstring** parent)
+{
+  
+  register unsigned int nbRec, prevLoc = 0, chrm_bloc;
+  register bool flipper;
+  
+  vector< unsigned int >& recTable = _map.getRecLoci(SEX, _mapIndex);
+  vector< bool > & firstRecPos = _map.getFirstRecPosition(SEX);
+  
+  nbRec = recTable.size();
+  
+  for(unsigned int c = 0, stride = 0, rec = 0; c < _numChromosome; ++c) {
+    
+    flipper = firstRecPos[c];
+    
+    chrm_bloc = stride + _numLociPerChrmsm[c]; //number of loci considered so far
+    
+    prevLoc = stride; //stride is the first locus of a chromosome
+    
+    //do recombination chromosome-wise
+    for(; recTable[rec] < chrm_bloc && rec < nbRec; rec++) {
+      
+      seq->copy( *parent[flipper], prevLoc, recTable[rec]);
+      
+      prevLoc = recTable[rec];
+      
+      flipper = !flipper;
+    }
+    
+    //copy what's left between the last x-over point and the end of the chrmsme
+    seq->copy( *parent[flipper], prevLoc, chrm_bloc);
+    
+    stride += _numLociPerChrmsm[c];
+    
+  }
+
+}
+
+// ------------------------------------------------------------------------------
+
+//                             TT_BDMI/
+
+// ----------------------------------------------------------------------------------------
+// operator=
+// ----------------------------------------------------------------------------------------
+TT_BDMI& TT_BDMI::operator=(const TTrait& T)
+{
+  const TT_BDMI& TD = dynamic_cast<const TT_BDMI&> (T);
+  if(this != &TD) {
+    
+    _nb_locus = TD._nb_locus;
+//    _mut_rate = TD._mut_rate;
+//    _recomb_rate = TD._recomb_rate;
+//    _genomic_mut_rate = TD._genomic_mut_rate;
+    _isHaploid = TD._isHaploid;
+//    _inherit_func_ptr = TD._inherit_func_ptr;
+//    _mutation_func_ptr = TD._mutation_func_ptr;
+//    _viability_func_ptr = TD._viability_func_ptr;
+    //deallocate any previous _sequence memory:
+    reset();
+    //allocate _sequence memory:
+    init();
+    //copy _sequence:
+    _sequence[0]->copy(*TD._sequence[0]);
+    if(!_isHaploid) _sequence[1]->copy(*TD._sequence[1]);
+    
+    set_value();
+  }
+  return *this;
+}
+// ----------------------------------------------------------------------------------------
+// operator==
+// ----------------------------------------------------------------------------------------
+bool TT_BDMI::operator==(const TTrait& T)
+{
+  if(_myProto->get_type().compare(T.get_type()) != 0) return false;
+  
+  const TT_BDMI& TD = dynamic_cast<const TT_BDMI&> (T);
+  if(this != &TD) {
+    if(_nb_locus != TD._nb_locus) return false;
+    if(_isHaploid != TD._isHaploid) return false;
+  }
+  return true;
+}
+// ----------------------------------------------------------------------------------------
+// operator!=
+// ----------------------------------------------------------------------------------------
+bool TT_BDMI::operator!=(const TTrait& T)
+{
+  if(!((*this) == T))
+    return true;
+  else
+    return false;
+}
+// ----------------------------------------------------------------------------------------
+// get_allele_value
+// ----------------------------------------------------------------------------------------
+double TT_BDMI::get_allele_value (int loc, int all)
+{
+  if(_isHaploid)
+	  return _myProto->getGenoFitnessHaplo(loc, all);
+  else
+	  return _myProto->getGenoFitnessDiplo(loc, all);
+}
+/*Be aware that the set_allele_value here changes the mutation effect for all individuals in the pop!!
+ * Also, 'locus' refers to a locus _pair_ of incompatible loci, and 'allele' to one of the genotypes.*/
+// ----------------------------------------------------------------------------------------
+// set_allele_value
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::set_allele_value (unsigned int locus, unsigned int allele, double value)
+{
+  _myProto->setGenoFitnessValue(locus, allele, value);
+}
+// ----------------------------------------------------------------------------------------
+// init
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::init ()
+{  
+  if(_sequence[0] != NULL) fatal("TT_BDMI::init::_sequence[0] is not NULL !\n"); 
+  if(!_isHaploid && _sequence[1] != NULL) fatal("TT_BDMI::init::_sequence[1] is not NULL !\n");
+  
+  _sequence[0] = new bitstring(_nb_locus);
+  if(!_isHaploid) _sequence[1] = new bitstring(_nb_locus);
+}
+// ----------------------------------------------------------------------------------------
+// reset
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::reset ()
+{
+  if(_sequence[0] != NULL) delete _sequence[0];
+  if(!_isHaploid && _sequence[1] != NULL) delete _sequence[1];
+  
+  _sequence[0] = NULL;
+  _sequence[1] = NULL;
+}
+// ----------------------------------------------------------------------------------------
+// set_sequence
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::set_sequence(bitstring** seq)
+{
+  reset(); init();
+  _sequence[0]->copy(*seq[0]);
+  if(!_isHaploid) _sequence[1]->copy(*seq[1]);
+}
+// ----------------------------------------------------------------------------------------
+// init_sequence
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::init_sequence ()
+{
+  if(_sequence[0] == NULL) _sequence[0] = new bitstring(_nb_locus);
+  
+  _sequence[0]->reset();  //sets all bits to 0
+  
+  if(!_isHaploid){
+    if(_sequence[1] == NULL) _sequence[1] = new bitstring(_nb_locus);
+    _sequence[1]->reset();
+  }
+
+  if(_myProto->isInitSet()) {
+
+    for(unsigned int i = 0; i < _nb_locus; i++) {
+      if( RAND::Uniform() < _myProto->get_init_freq(i) ) 
+        _sequence[0]->set(i);
+      
+      if( !_isHaploid )
+        if ( RAND::Uniform() < _myProto->get_init_freq(i) )
+          _sequence[1]->set(i);
+    } 
+  }
+
+}
+// ----------------------------------------------------------------------------------------
+// inherit_diplo
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::inherit_diplo (TTrait* mother, TTrait* father)
+{
+  bitstring** mother_seq = (bitstring**)mother->get_sequence();
+  bitstring** father_seq = (bitstring**)father->get_sequence();
+  
+  _myProto->inherit(FEM, _sequence[FEM], mother_seq);
+  _myProto->inherit(MAL, _sequence[MAL], father_seq);
+}
+// ----------------------------------------------------------------------------------------
+// inherit_haplo
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::inherit_haplo (TTrait* mother, TTrait* father)
+{
+  bitstring* gamete[2];
+  gamete[0] = (bitstring*)(mother->get_sequence()[0]);
+  gamete[1] = (bitstring*)(father->get_sequence()[0]);
+  
+  _myProto->inherit(MAL, _sequence[0], &gamete[0]);
+}
+
+// ----------------------------------------------------------------------------------------
+// mutate
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::mutate_haplo ()
+{
+  unsigned int NbMut;
+  
+  NbMut = (unsigned int)RAND::Poisson(_genomic_mut_rate);
+  
+  while(NbMut != 0) {  
+    
+    _sequence[0]->flip(  RAND::Uniform( _nb_locus ) );
+    
+    NbMut--;
+  }
+}
+// ----------------------------------------------------------------------------------------
+// mutate
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::mutate_diplo ()
+{
+  unsigned int NbMut;
+  
+  NbMut = (unsigned int)RAND::Poisson(_genomic_mut_rate);
+  
+  while(NbMut != 0) {  
+    
+    _sequence[ RAND::RandBool() ]->flip(  RAND::Uniform( _nb_locus ) );
+    
+    NbMut--;
+  }
+}
+// ----------------------------------------------------------------------------------------
+// viability_haplo
+// ----------------------------------------------------------------------------------------
+double TT_BDMI::viability_haplo ( )
+{
+  unsigned int npair = _nb_locus/2;
+  double viab = 1;
+  
+  for (unsigned int pair = 0, i = 0; pair < npair && i < _nb_locus; ++pair) {
+    viab *= 1 + _myProto->getGenoFitnessHaplo( pair , 
+                          _haploGenotCoding[ (*_sequence[0])[i++] ][ (*_sequence[0])[i++] ]);
+  }
+  return viab;
+}
+// ----------------------------------------------------------------------------------------
+// viability_diplo
+// ----------------------------------------------------------------------------------------
+double TT_BDMI::viability_diplo ( )
+{
+  unsigned int npair = _nb_locus/2;
+  double viab = 1;
+//cout << "\nTT_BDMI::viability_diplo\n";
+//  cout << "  sequence[0].size(): "<<(*_sequence[0]).size()
+//  << "  sequence[0].nb_words(): "<<(*_sequence[0]).nb_words()<<endl;
+//  cout << "  sequence[1].size(): "<<(*_sequence[1]).size()
+//  << "  sequence[1].nb_words(): "<<(*_sequence[1]).nb_words()<<endl;
+  
+  for (unsigned int pair = 0, i = 0; pair < npair && i < _nb_locus; ++pair) {
+    viab *= 1 + _myProto->getGenoFitnessDiplo( pair , //locus number
+            _diploGenotCoding[ (*_sequence[0])[i] ][ (*_sequence[1])[i++] ], //first locus
+            _diploGenotCoding[ (*_sequence[0])[i] ][ (*_sequence[1])[i++] ]); //second locus
+  }
+  return viab; 
+}
+// ----------------------------------------------------------------------------------------
+// show_up
+// ----------------------------------------------------------------------------------------
+void TT_BDMI::show_up ()
+{
+  set_value();
+  std::cout<<"\n   Trait type: dmi"
+  <<"\n        value: "<<*(double*)getValue()
+  <<"\n     num loci: "<<_nb_locus
+  <<"\nfitness table: "<<endl;
+  _myProto->showGenoTable(_nb_locus/2);
+  
+  cout<<"\n     sequence: "<<endl;
+  cout<<"0: ";
+  for(unsigned int i = 0; i < _nb_locus && i < 64; i++)
+    cout<<(unsigned int)(*_sequence[0])[i];
+  cout<<endl;
+  
+  if(!_isHaploid) {
+    cout<<"1: ";
+    for(unsigned int i = 0; i < _nb_locus && i < 64; i++)
+      cout<<(unsigned int)(*_sequence[1])[i];
+  }
+  cout<<endl;
+}
+
+// ------------------------------------------------------------------------------
+
+//                             TTBDMI_FH/
+
+// ----------------------------------------------------------------------------------------
+// write
+// ----------------------------------------------------------------------------------------
+void TTBDMI_FH::FHwrite ()
+{
+  if(!get_pop_ptr()->isAlive()) return;
+
+  string filename = get_filename();
+  
+  ofstream FILE (filename.c_str(), ios::out);
+  
+  if(!FILE) fatal("could not open DMI output file\n");
+  
+  
+  Patch* current_patch;
+  int patchNbr = get_pop_ptr()->getPatchNbr();
+  
+  FILE<<"pop ";
+  
+  for(int i = 0; i < _FHLinkedTrait->get_nb_locus(); i++)
+    FILE<<"loc"<<i+1<<" ";
+  
+  FILE<<"age sex ped origin"<<endl;
+
+  for (int i = 0; i < patchNbr; ++i) {
+    
+    current_patch = get_pop_ptr()->getPatch(i);
+    if(_FHLinkedTrait->isHaploid()) {
+      write_haplo(current_patch, FEM, OFFSx, FILE);
+      write_haplo(current_patch, MAL, OFFSx, FILE);
+      write_haplo(current_patch, FEM, ADLTx, FILE);
+      write_haplo(current_patch, MAL, ADLTx, FILE);
+    } else {
+      write_diplo(current_patch, FEM, OFFSx, FILE);
+      write_diplo(current_patch, MAL, OFFSx, FILE);
+      write_diplo(current_patch, FEM, ADLTx, FILE);
+      write_diplo(current_patch, MAL, ADLTx, FILE);
+    }
+  }    
+}
+// ----------------------------------------------------------------------------------------
+// write_haplo
+// ----------------------------------------------------------------------------------------
+void TTBDMI_FH::write_haplo (Patch* patch, sex_t SEX, age_idx AGE, ofstream& FH)
+{
+  bitstring** seq;
+  Individual *ind;
+  for (unsigned int j = 0, size = patch->size(SEX, AGE); j < size; ++j) {
+    
+    FH<<patch->getID()+1<<" ";
+    ind = patch->get(SEX, AGE, j);
+    seq = (bitstring**)ind->getTrait(_FHLinkedTraitIndex)->get_sequence();
+    
+    for(int k = 0; k < _FHLinkedTrait->get_nb_locus(); ++k)
+      FH<<(int)((*seq[0])[k])<<" ";
+    
+    FH << (AGE == OFFSx ? OFFSPRG : ADULTS) << " " << SEX << " " 
+       << ind->getPedigreeClass() << " " << ind->getHome()+1<<endl;
+  }
+  
+}
+// ----------------------------------------------------------------------------------------
+// write_diplo
+// ----------------------------------------------------------------------------------------
+void TTBDMI_FH::write_diplo (Patch* patch, sex_t SEX, age_idx AGE, ofstream& FH)
+{
+  bitstring** seq;
+  Individual *ind;
+  for (unsigned int j = 0, size = patch->size(SEX, AGE); j < size; ++j) {
+    
+    FH<<patch->getID()+1<<" ";
+    ind = patch->get(SEX, AGE, j);
+    seq = (bitstring**)ind->getTrait(_FHLinkedTraitIndex)->get_sequence();
+    
+    for(int k = 0; k < _FHLinkedTrait->get_nb_locus(); ++k)
+      FH<<(int)((*seq[0])[k])<<(int)((*seq[1])[k])<<" ";
+    
+    FH << (AGE == OFFSx ? OFFSPRG : ADULTS) << " " << SEX << " " 
+       << ind->getPedigreeClass() << " " << ind->getHome()+1<<endl;
+  }
+  
+}
+
+// ------------------------------------------------------------------------------
+
+//                             TTBDMI_SH/
+
+// ----------------------------------------------------------------------------------------
+// setStatRecorders
+// ----------------------------------------------------------------------------------------
+bool TTBDMI_SH::setStatRecorders (string& token)
+{
+#ifdef _DEBUG_
+  message("-TTBDMI_SH::setStatRecorders ");
+#endif
+  if(token == "dmi") {
+    
+      addStats(OFFSPRG);
+      addStats(ADULTS);
+    
+  } else if(token == "off.dmi") {
+    
+      addStats(OFFSPRG);
+    
+  } else if(token == "adlt.dmi") {
+    
+      addStats(ADULTS);
+    
+  } else
+    return false;
+  
+  return true;
+}
+// ----------------------------------------------------------------------------------------
+// addStats
+// ----------------------------------------------------------------------------------------
+void TTBDMI_SH::addStats(age_t AGE)
+{
+  string prefix = (AGE == ADULTS ? "adlt." : "off.");
+  ostringstream name;
+  void (TTBDMI_SH::* setter) () = (AGE == ADULTS ?
+                                            &TTBDMI_SH::setAdultStats :
+                                            &TTBDMI_SH::setOffsprgStats);
+  
+  add("", prefix + "dmi.freq", AGE, 0, 0, &TTBDMI_SH::getFreq, 0, 0, setter);
+  add("", prefix + "dmi.icmp", AGE, 0, 0, &TTBDMI_SH::getFreqIcmp, 0, 0, 0);
+  for (unsigned int i = 0; i < _pop->getPatchNbr(); ++i) {
+    name << prefix << "dmi.p" << i+1;
+    add("", name.str(), AGE, i, 0, 0, &TTBDMI_SH::getPatchFreq, 0, 0);
+    name.str(""); //reset the string
+  }
+  for (unsigned int i = 0; i < _pop->getPatchNbr(); ++i) {
+    name << prefix << "icmp.p" << i+1;
+    add("", name.str(), AGE, i, 0, 0, &TTBDMI_SH::getPatchIcmp, 0, 0);
+    name.str("");
+  }
+  
+}
+// ----------------------------------------------------------------------------------------
+// setAdultStats
+// ----------------------------------------------------------------------------------------
+void TTBDMI_SH::setAdultStats () 
+{
+  if( _SHLinkedTrait->isHaploid()) setStats(ADLTx, &TTBDMI_SH::countAllele_haplo);
+  else setStats(ADLTx, &TTBDMI_SH::countAllele_diplo);
+}
+// ----------------------------------------------------------------------------------------
+// setOffsprgStats
+// ----------------------------------------------------------------------------------------
+void TTBDMI_SH::setOffsprgStats ()
+{
+  if( _SHLinkedTrait->isHaploid()) setStats(OFFSx, &TTBDMI_SH::countAllele_haplo);
+  else setStats(OFFSx, &TTBDMI_SH::countAllele_diplo);
+}
+// ----------------------------------------------------------------------------------------
+// setStats_Haplo
+// ----------------------------------------------------------------------------------------
+void TTBDMI_SH::setStats(age_idx agex, void(TTBDMI_SH::* cntFunc)(Patch*,sex_t,age_idx,double**,double**))
+{
+  unsigned int i, nb_ind = 0, nb_patch = 0;
+  unsigned int nb_locus = _SHLinkedTrait->get_nb_locus();
+  unsigned int num_pair;
+  unsigned int psize=0;
+  unsigned int npatch=_pop->getPatchNbr();
+
+  Patch* current_patch;
+      
+  num_pair = nb_locus/2;
+
+  double* freqTable = new double [nb_locus];
+  double* icmpTable = new double [num_pair];
+  double** patchFreqTable = new double* [npatch];
+  double** patchIcmpTable = new double* [npatch];
+
+  for(i = 0; i < nb_locus; ++i)
+    freqTable[i] = 0;
+  
+  for(i = 0; i < num_pair; ++i)
+    icmpTable[i] = 0;
+
+  //init patch tables:
+  if(_patchFreq) delete [] _patchFreq;
+  _patchFreq = new double [npatch];
+  
+  if(_patchIcmp) delete [] _patchIcmp;
+  _patchIcmp = new double [npatch];
+
+  //patch loop:
+  for(i = 0; i < npatch; ++i) {
+    
+    current_patch = _pop->getPatch(i);
+
+    patchFreqTable[i] = new double [nb_locus];
+    for(unsigned int j = 0; j < nb_locus; ++j) patchFreqTable[i][j] = 0;
+    
+    patchIcmpTable[i] = new double [num_pair];
+    for(unsigned int j = 0; j < num_pair; ++j) patchIcmpTable[i][j] = 0;
+    
+    _patchFreq[i] = 0;
+    _patchIcmp[i] = 0;
+
+    if( (psize = current_patch->size(agex)) == 0) continue;
+    
+    nb_patch++;
+    
+    nb_ind += psize;
+
+    (this->* cntFunc) (current_patch, FEM, agex, patchFreqTable, patchIcmpTable);
+    (this->* cntFunc) (current_patch, MAL, agex, patchFreqTable, patchIcmpTable);
+    
+    //mut frequ.
+    for(unsigned int k = 0; k < nb_locus; ++k)
+      _patchFreq[i] += patchFreqTable[i][k]/psize;
+    
+    if(_SHLinkedTrait->isHaploid()) _patchFreq[i] /= nb_locus;
+    else _patchFreq[i] /= 2*nb_locus;
+
+    //incompatibilities:
+    for(unsigned int k = 0; k < num_pair; ++k)
+      _patchIcmp[i] += patchIcmpTable[i][k]/psize;
+    
+    _patchIcmp[i] /= num_pair;
+
+    
+  }//end for Patch
+  
+  //set pop means
+  //mut frequ:
+  _freq = 0;
+  
+  for(i = 0; i < npatch; ++i)  _freq += _patchFreq[i];
+  
+  _freq /= npatch;
+  
+  //Incompatibilities:
+  _freqIcomp = 0;
+  
+  for(i = 0; i < npatch; ++i)  _freqIcomp += _patchIcmp[i];
+  
+  _freqIcomp /= npatch;
+  
+  
+  delete [] freqTable;
+  delete [] icmpTable;
+  for(i = 0; i < npatch; ++i) {
+    delete [] patchFreqTable[i];
+    delete [] patchIcmpTable[i];
+  }
+  delete [] patchFreqTable;
+  delete [] patchIcmpTable;
+}
+// ----------------------------------------------------------------------------------------
+// countAllele_haplo
+// ----------------------------------------------------------------------------------------
+void TTBDMI_SH::countAllele_haplo (Patch *patch, sex_t SEX, age_idx AGE, double **frqTab, double **icpTab)
+{
+  TT_BDMI* trait;
+  unsigned int l, a1, a2, num_pair = _SHLinkedTrait->get_nb_locus()/2;
+  
+  for(unsigned int j = 0; j < patch->size(SEX, AGE); ++j) {
+    
+    trait = dynamic_cast< TT_BDMI* > ( patch->get( SEX, AGE, j )->getTrait( _SHLinkedTraitIndex ) );
+    
+    l = 0;
+    for(unsigned int k = 0; k < num_pair; ++k) {
+      
+      a1 = trait->get_num_mut_haplo(l);
+      frqTab[patch->getID()][l++] += a1;
+      
+      a2 = trait->get_num_mut_haplo(l);
+      frqTab[patch->getID()][l++] += a2;
+      
+      icpTab[patch->getID()][k] += a1 ^ a2;
+    }
+  }
+}
+// ----------------------------------------------------------------------------------------
+// countAllele_diplo
+// ----------------------------------------------------------------------------------------
+void TTBDMI_SH::countAllele_diplo (Patch *patch, sex_t SEX, age_idx AGE, double **frqTab, double **icpTab)
+{
+  TT_BDMI* trait;
+  unsigned int l, a1, a2, num_pair = _SHLinkedTrait->get_nb_locus()/2;
+  
+  for(unsigned int j = 0; j < patch->size(SEX, AGE); ++j) {
+    
+    trait = dynamic_cast< TT_BDMI* > ( patch->get( SEX, AGE, j )->getTrait( _SHLinkedTraitIndex ) );
+    
+    l = 0;
+    for(unsigned int k = 0; k < num_pair; ++k) {
+      
+      a1 = trait->get_num_mut_diplo(l);
+      frqTab[patch->getID()][l++] += a1;
+      
+      a2 = trait->get_num_mut_diplo(l);
+      frqTab[patch->getID()][l++] += a2;
+      
+      icpTab[patch->getID()][k] += ((a1 == 1) && (a2 == 1));
+    }
+  }
+}
+
+
+// ------------------------------------------------------------------------------
+
+//                             LCE_Init_BDMI/
+
+// ----------------------------------------------------------------------------------------
+// LCE_Init_BDMI
+// ----------------------------------------------------------------------------------------
+LCE_Init_BDMI::LCE_Init_BDMI ( ) : LifeCycleEvent("dmi_init","dmi")
+{
+  add_parameter("dmi_init_freq", MAT, true, false, 0, 0, 0);
+  add_parameter("dmi_init_patch", MAT, false, false, 0, 0, 0);
+//  add_parameter("dmi_inoculum_alleles", MAT, false, false, 0, 0, 0);
+//  add_parameter("dmi_inoculum_size", INT, false, false, 0, 0, 0);
+}
+// ----------------------------------------------------------------------------------------
+// setParameters
+// ----------------------------------------------------------------------------------------
+bool LCE_Init_BDMI::setParameters ( )
+{
+  TMatrix freq_mat, pat_mat;
+  unsigned int patchNbr = _popPtr->getPatchNbr();
+  TProtoBDMI* proto = dynamic_cast<TProtoBDMI*> ( _popPtr->getTraitPrototype("dmi") );
+  bool isPatchSpecific = false;
+  
+  _nLocus = proto->get_nb_locus();
+  
+  _paramSet->getMatrix("dmi_init_freq", &freq_mat);
+  
+  if(get_parameter("dmi_init_patch")->isSet()) {
+    _paramSet->getMatrix("dmi_init_patch", &pat_mat);
+    isPatchSpecific = true;
+  }
+  
+  unsigned int ncol = freq_mat.getNbCols(); //nbr of loci = nbr of col
+  unsigned int npat = freq_mat.getNbRows(); //nbr of diff. value / locus, may be <= patchNbr
+  
+  //we have two possible configurations:
+  // 1. ncol == 1; same value for all loci in a patch but varies among patches, with possible repetition of a pattern
+  // 2. ncol == no loci && npat <= no patches; locus freq change in each patch following a pattern (same if npat == 1)
+  if(npat > patchNbr) {
+    error("The number of rows in \"dmi_init_freq\" is greater than the number of patches, must be at least equal to it.");
+    return false;
+  }  
+  if(ncol > _nLocus) {
+    error("The number of columns in \"dmi_init_freq\" is greater than number of loci, must be at least equal to it.\n");
+    return false;
+  }
+  
+  _init_freq.reset(patchNbr, _nLocus);
+  
+  bool status;
+  if ( isPatchSpecific )
+    status = setPatchFreq(freq_mat, pat_mat, patchNbr);
+  else 
+    status = setSpatialPattern(freq_mat, patchNbr);
+  
+  return status;
+}
+// ----------------------------------------------------------------------------------------
+// setSpatialPattern
+// ----------------------------------------------------------------------------------------
+
+bool LCE_Init_BDMI::setSpatialPattern(TMatrix& freq_mat, unsigned int patchNbr)
+{  
+  unsigned int ncol = freq_mat.getNbCols();
+  unsigned int npat = freq_mat.getNbRows();
+
+  for(unsigned int i = 0; i < patchNbr; ++i) {
+    
+    if(npat < patchNbr) {//repetition of a pattern
+      
+      if(ncol == 1)
+        for(unsigned int j = 0; j < _nLocus; j++) 
+          _init_freq.set(i, j, freq_mat.get(i % npat, 0));
+      else if (ncol < _nLocus)
+        for(unsigned int j = 0; j < _nLocus; j++)
+          _init_freq.set(i, j, freq_mat.get(i % npat, j % ncol));
+      else
+       for(unsigned int j = 0; j < _nLocus; j++)
+          _init_freq.set(i, j, freq_mat.get(i % npat, j));
+      
+    } else {//different values for each Patch
+      
+      if(ncol == 1)
+        for(unsigned int j = 0; j < _nLocus; j++) 
+          _init_freq.set(i, j, freq_mat.get(i, 0));
+      else if (ncol < _nLocus)
+        for(unsigned int j = 0; j < _nLocus; j++)
+          _init_freq.set(i, j, freq_mat.get(i, j % ncol));
+      else
+        for(unsigned int j = 0; j < _nLocus; j++)
+          _init_freq.set(i, j, freq_mat.get(i, j));
+    }
+  }
+
+  return true;
+}
+// ----------------------------------------------------------------------------------------
+// setPatchFreq
+// ----------------------------------------------------------------------------------------
+bool LCE_Init_BDMI::setPatchFreq(TMatrix& freq_mat,TMatrix& pat_mat, unsigned int patchNbr)
+{
+  unsigned int ncol = freq_mat.getNbCols();
+  unsigned int nrow = freq_mat.getNbRows();
+  unsigned int npatch = pat_mat.getNbCols();
+  
+  if(nrow != npatch && nrow != 1) {
+    error("Row num. of \"dmi_init_freq\" is greater than column num. of \"dmi_init_patch\"\n\
+          must match it or be 1.\n");
+    return false;
+  }
+  
+  for(unsigned int i = 0, pat, row; i < npatch; ++i) {
+
+    pat = pat_mat.get(0, i) - 1; //patch index starts at 0!
+    
+    row = (nrow == 1 ? 0 : i);
+    
+    if(ncol == 1)
+      for(unsigned int j = 0; j < _nLocus; j++) 
+        _init_freq.set(pat, j, freq_mat.get(row, 0));
+    else if (ncol < _nLocus)
+      for(unsigned int j = 0; j < _nLocus; j++)
+        _init_freq.set(pat, j, freq_mat.get(row, j % ncol));
+    else
+      for(unsigned int j = 0; j < _nLocus; j++)
+        _init_freq.set(pat, j, freq_mat.get(row, j));
+  }
+  
+  return true;
+}
+// ----------------------------------------------------------------------------------------
+// execute
+// ----------------------------------------------------------------------------------------
+void LCE_Init_BDMI::execute ( )
+{
+  
+  if(!(_popPtr->getCurrentGeneration() == 1)) return;
+  
+  unsigned int patchNbr = _popPtr->getPatchNbr();
+  double *values = new double[_nLocus];
+  TProtoBDMI* proto = dynamic_cast<TProtoBDMI*> ( _popPtr->getTraitPrototype("dmi") );
+
+  for (unsigned int i = 0; i < patchNbr ; i++) { 
+
+    _init_freq.getRowView(i, _nLocus, values);
+    
+    proto->set_init_freq(values, _nLocus);
+    
+    init_value(FEM, OFFSx, _popPtr->size(FEM, OFFSPRG, i), i);
+    init_value(MAL, OFFSx, _popPtr->size(MAL, OFFSPRG, i), i);
+    init_value(FEM, ADLTx, _popPtr->size(FEM, ADULTS, i), i);
+    init_value(MAL, ADLTx, _popPtr->size(MAL, ADULTS, i), i);
+    
+  }
+  
+  delete [] values;
+}
+// ----------------------------------------------------------------------------------------
+// LCE_QuantiInit::init_value
+// ----------------------------------------------------------------------------------------
+void LCE_Init_BDMI::init_value(sex_t SEX, age_idx age, unsigned int size, unsigned int deme)
+{ 
+  Individual* ind;
+  TT_BDMI* trait;
+  
+  for (unsigned int i = 0; i < size ; i++) {
+    ind = _popPtr->get(SEX, age, i, deme);
+    trait = dynamic_cast<TT_BDMI*> ( ind->getTrait(_LCELinkedTraitIndex) );
+    trait->init_sequence();
+    trait->set_value();
+  }
+}
+
+
