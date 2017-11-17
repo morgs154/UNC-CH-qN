@@ -83,9 +83,47 @@ Exception Handler ................ Throws exceptions for simulation, tracer, bas
 Exception Handler.Header ......... Defines exception designs (try, throw, catch), derive from BaseException, Janitor class, checks
                                    classes/arrays/objects, some runtime/logic errors
                                    
-Newmat ........................... Newmat matrix manipuation library- defines matrix segments, math functions; locate code not used by
+Newmat.Header ........................... Newmat matrix manipuation library- defines matrix segments, math functions; locate code not used by
                                    tests; matrix types and conversions, routines; working classes for matrices, reverse order
 
+Newmat Funct ..................... Manipulating matrices, checks if valid, square, symmetric, skew, upper, lower, diagonal, band, and
+                                   combinations, then creates new matrix with defined attributes
+
+Newmat Row/Column ................ Performs operations on the rows/columns of matrix, including skipping, storing, and mathematical ops;
+                                   repeats for different MatrixTypes
+                                   
+Newmat Get Row/Column ............ Outlines needed functions, load/restore data, repeats for different MatrixTypes, destructors
+
+Newmat Util ...................... Constructors for MatrixTypes, conversions (uses GeneralMatrix), resizing for different Types, matrix
+                                   manipulating, checks sotrage compatibility and memory, construct new array, swap values
+
+Newmat Eval ...................... Performs scalar ops, transpose and evaluate, mathematical ops, input/filling matrix, reversing order 
+
+Newmat Op ........................ Operators repeated for Types, scaling/shifting/stacking. GeneralMatrix operators, Generics, get elements
+
+Newmat Binary .................... Solves routines, binary operations, add/subract matirces of same/different storages, concatonate, 
+                                   stacking, comparing matrices
+
+Newmat Scalar .................... LU decomposition, scalar functions, min/max routines, determinants
+
+Newmat Output .................... for G++ compliers (Linux), operators
+
+Newmat Adv.Header................. Advanced functions and applications (ex: Cholesky), sorts, Jacobi, Eigen, FFT, Helmert 
+
+Newmat Excep ..................... Read in Matrix and run through potential errors-base, singular, convergence, overflow, Type, build
+                                   index, misc
+
+Newmat I/O.Header ................ Define package input/output for older G++, operators/precision
+
+Newmat Non-Lin Opti .............. Non-linear optimization, Cases-start/cont, least squares, fit, variance
+
+Newmat Non-Lin.Header ............ FindMaximum2, NonLinearLeastSquares, MaximumLiklihood, (w/ outlines)
+
+Newmat Row/Column.Header ......... Declares classes used to access rows/columns, public variables/methods
+
+Newmat Rect Op ................... Rectangular matrix operations-scaling,rotate, pythagorean theorem
+
+Newmat REct Op.Header ............ Declares classes and their methods
 
 
 
