@@ -1,8 +1,7 @@
 # quantiNEMO
 Source code and following changes of the program quantiNEMO for UNC-CH Vision Lab
 
-/** @file basicsimulation.cpp
-*
+/** 
 *   Copyright (C) 2006 Frederic Guillaume    <guillaum@zoology.ubc.ca>
 *   Copyright (C) 2008 Samuel Neuenschwander <samuel.neuenschwander@unil.ch>
 *
