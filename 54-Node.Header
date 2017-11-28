@@ -1,0 +1,53 @@
+/** @file node.h
+*
+*/
+
+#ifndef nodeH
+#define nodeH
+
+#include <iostream>
+using namespace std;
+
+
+/**Abstraction of the node of a Tree, connecting branches and leaves.*/
+class Node {
+
+private:
+  /**The position of the Node in the Tree.*/
+  unsigned int _myrank;
+  /**The number of branches leaving this Node.*/
+  unsigned int _nb_branches;
+  /**The table of branches pointers.*/
+  Node  ** _branches;
+  /**The table of phenotypic values, used only if the Node is a leaf.*/
+  double * _values;
+
+
+
+public:
+  Node ( ) { }
+
+  /**@param depth the depth of the Tree, number of ranks (locus) in the Tree
+    @param rank the rank of this Node, if rank == depth, this is a leaf
+    @param size the number of branches and values to store in the Node.*/
+  Node  (unsigned int depth, unsigned int rank, unsigned int size);
+
+  ~Node ();
+
+  /**Set the node params, branches are NULL by default, they are created only if needed.
+    @param depth the depth of the Tree, number of ranks (locus) in the Tree
+    @param rank the rank of this Node, if rank == depth, this is a leaf
+    @param size the number of branches and values to store in the Node.*/
+  void set   (unsigned int depth, unsigned int rank, unsigned int size);
+
+  /**Scans the Tree to find the phenotype value of the mapped genotype.
+    If a node at a given branch is missing, it is created.
+    @param coord the coordinate values of the genotype
+    @param depth the depth of the tree, used to determine if we are at a leaf
+  */
+  double get_value(unsigned int *coord, unsigned int depth);
+  double get_next(unsigned int *coord, unsigned int depth);
+  void   set_value(unsigned int *coord, unsigned int depth, double value);
+};
+#endif //NODE_H
+
