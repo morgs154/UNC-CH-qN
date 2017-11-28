@@ -1,0 +1,94 @@
+/** @file simcomponent.h
+*
+*/
+
+#ifndef simcomponentH
+#define simcomponentH
+
+
+#include "fileservices.h"
+#include "statservices.h"
+#include "param.h"
+
+
+/**Interface to all basic components of a simulation (traits, life cycle events, pop, etc.\ ).
+ * Implements the interface to handle the files and stats handler and the parameters container.
+ * Contains the components parameters.
+ */
+
+class SimComponent {
+protected:
+  /**The parameters container. */
+  ParamSet* _paramSet;
+
+public:
+
+  SimComponent ( ) : _paramSet(0) {
+  }
+  //**Dstor. Deletes the parameter container. */
+  virtual ~SimComponent ( ) {
+    if(_paramSet) delete _paramSet;
+  }
+
+  ///@name Services interface
+  ///@{
+  /**Loads the component's FileHandler onto the FileServices.
+    @param loader the file service
+  **/
+  virtual void loadFileServices ( FileServices* loader ) = 0;
+  /**Loads the component's StatHandler onto the StatServices.
+     @param loader the stat service
+  **/
+  virtual void loadStatServices ( StatServices* loader ) = 0;
+  ///@}
+
+  /**Sets a new ParamSet and name it.
+    @param name the name of the parameter container
+    **/
+  ///@name Parameters handling
+  ///@{
+  virtual void set_paramset (string name, bool isRequired) {
+    if(_paramSet) delete _paramSet;
+    _paramSet = new ParamSet(name, isRequired);
+  }
+  /**ParamSet accessor. **/
+  virtual ParamSet*  get_paramset () {return _paramSet;}
+
+  /**Interface to add a parameter to the set.
+   * @param param The parameter to add to the set
+   */
+  virtual void add_parameter (Param* param) {_paramSet->add_param(param);}
+
+  /**Interface to add a parameter to the set.
+   * @param Name The param string name as read in the init file
+   * @param Type The type of the argument (DBL=double, INT=integer, BOOL=boolean, STR=string, etc., see type.h)
+   * @param isRequired True if the parameter is mandatory
+   * @param isBounded True if the parameter takes bounded values as argument
+   * @param low_bnd The lower value the argument can take
+   * @param up_bnd The upper value the argument can take
+   * @param default value
+   * @param temp can the parameter have temporal changes?
+   */
+  virtual void add_parameter (string Name,param_t Type,bool isRequired,bool isBounded,
+      double low_bnd,double up_bnd,string def,bool temp=false)
+  {
+    _paramSet->add_param(Name,Type,isRequired,isBounded,low_bnd,up_bnd,def,temp);
+  }
+
+  /**Param getter. Asks the ParamSet to return a pointer to Param \a name.
+    @see ParamSet::get_param
+    */
+  virtual Param*    get_parameter       (string name)  {return _paramSet->get_param(name);}
+
+  /**Param value getter. Asks the ParamSet to return the value of Param \a name.
+    @see ParamSet::getValue
+    */
+  virtual double     get_parameter_value (string name) {return _paramSet->getValue(name);}
+  ///}
+
+};
+
+
+
+#endif  //SIMCOMPONENT_H
+
