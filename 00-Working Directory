@@ -126,6 +126,31 @@ Newmat Rect Op ................... Rectangular matrix operations-scaling,rotate,
 
 Newmat Rect Op.Header ............ Declares classes and their methods
 
+Node ............................. Getters/setters for manipulating an object in the Tree
+
+Node.Header ...................... Sets parameters for Node, pairs phenotype to genotype(mapped), connects branches and leaves
+
+Array Org ........................ Produces messages for errors, timer, sorts/deletes array, removes bad elements, reads FSTAT files,
+                                   checks their format
+                                  
+Array Org.Header ................. Declares methods, sets up array, logistic growth models, checks slope    
+
+Parameter ........................ Updates for temporal parameters, checks input with type and range (throws error if incorrect), sets it 
+                                   with sequence/reps, gets and read through matrix, cases for different Object types, checks for 
+                                   required or double inputs, adds/sets new parameters, organizes parameter output
+                                   
+Parameter.Header ................ Defines parameter and stores value, outlines terms, sets parameter outlines, repeats for matrix, adds
+                                  flags, accessors
+
+Patch ........................... Links parameters to quantitative traits, sets initial environment/population, variance, selection
+                                  pressures, sets new generations, adds/removes individuals in sex/age containers, ages population, 
+                                  downreg pop size according to K and low fitnes 
+
+
+
+
+
+
 
 
 X1-DMI    Set parameters for haploid and diploid, incompatibility table, load/set genotype/stat files, initates sequence, inheritance, 
