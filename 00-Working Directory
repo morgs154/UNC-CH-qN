@@ -146,9 +146,17 @@ Patch ........................... Links parameters to quantitative traits, sets 
                                   pressures, sets new generations, adds/removes individuals in sex/age containers, ages population, 
                                   downreg pop size according to K and low fitnes 
 
+Patch.Header .................... Defines Patch interface/variables, outlines selection pressures, name setters/getters, phenotypic array
+                                  
+Precision.Header ................ Sets max/min of types(w/ exponents), holds different FloatingPointPrecision classes (changes in library,
+                                  headers, or method function)
 
+RandGen.Header ................... Holds random number generator class, produces a number from across various distributions, looks at 
+                                   deviates, cumulative array, returns values to normal distribution
 
+Service.Header ................... Interface for files/stats of simulation, updates Observers
 
+SimComp.Header ................... Interface for basic simulation aspects including parameters
 
 
 
