@@ -144,7 +144,7 @@ Parameter.Header ................ Defines parameter and stores value, outlines t
 
 Patch ........................... Links parameters to quantitative traits, sets initial environment/population, variance, selection
                                   pressures, sets new generations, adds/removes individuals in sex/age containers, ages population, 
-                                  downreg pop size according to K and low fitnes 
+                                  downreg pop size according to K and low fitness 
 
 Patch.Header .................... Defines Patch interface/variables, outlines selection pressures, name setters/getters, phenotypic array
                                   
@@ -157,6 +157,33 @@ RandGen.Header ................... Holds random number generator class, produces
 Service.Header ................... Interface for files/stats of simulation, updates Observers
 
 SimComp.Header ................... Interface for basic simulation aspects including parameters
+
+Simulation ....................... Loads/builds/resets initial set up of genetic map, paramaters, stat/file handlers, LCE, reads the 
+                                   input file, set seed, runs simulation and loops through reps, print log file, default templates
+
+Simulation.Header ................ Sets up metapop and simulation components, declares SimRunner class, builds param list and pop, 
+                                   handles file/stat services
+                                   
+Sort ............................. Different sort algorithms including quick, insert, descending/ascending, also sorts diagonal matrix
+
+Stat Rec Base .................... Records stats throughout the simulation, sums them up as needed, adds/stores values per generation/rep 
+
+Stat Rec Base.Header ............. Stores stat values in matrix, sets rows/columns, checks if needs to be stored/calc, retrieval methods
+
+Stat Handler ..................... Template stat handler classes, addition per patch/loci, stores/writes output file, FSTAT functions-
+                                   allele freq, heterozygosity, fitness, Fst, fixation, Weir Cockerham per patch/total; coancestry 
+                                   analysis, kinship, 
+
+Stat Handler.Header .............. Computes/stores stats for SimComponents through StatRecorder, calc kinship/coancestry coefficients,
+                                   declares getters/setters
+
+Stat Handler Base ................. Updates patches to compute stats, prints out headers/legends/values/means/variance
+
+Stat Handler Base.Header .......... Declares classes, connects Handler to Recorder, declares vectors for patch specifics, StatHandler
+                                    interface, uses Handler
+
+
+
 
 
 
