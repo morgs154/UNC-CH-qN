@@ -182,6 +182,23 @@ Stat Handler Base ................. Updates patches to compute stats, prints out
 Stat Handler Base.Header .......... Declares classes, connects Handler to Recorder, declares vectors for patch specifics, StatHandler
                                     interface, uses Handler
 
+Stat Services ..................... Initiates handlers, defines tables, prints legend and stats
+
+Stat Services.Header .............. Defines and declares previous stat classes and methods used within each
+
+SubMatrix Newmat .................. Getters for different objects within the submatrix
+
+SVD Newmat ........................ Single value decomposition, manipulates three different matricies
+
+Tarray.Header ..................... Array functions and templates, quicksort for 1D array, cumulative array, array stats
+
+TMatrix ........................... Read in matrix, both with and without brackets
+
+TMatrix.Header .................... Accounts for matrix variability, accessor/setter to matrix dimensions, extracting obj from matrix,
+                                    parameter handler
+                                    
+TPatchFitness ..................... Constructors, sort/randomize/remove individuals                                    
+
 
 
 
