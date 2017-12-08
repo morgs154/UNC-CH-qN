@@ -199,8 +199,18 @@ TMatrix.Header .................... Accounts for matrix variability, accessor/se
                                     
 TPatchFitness ..................... Constructors, sort/randomize/remove individuals                                    
 
+Tree .............................. Template tree data structure classes, get/set tree coordinate for genotype
 
+Tree.Header ....................... Template class to account for epistasis, declares variables used
 
+TSelection ........................ LCE fitness for indiv, sort based on fitness, initialize, environmental variance for 
+                                    patch/trait 
+
+TSelection.Header ................. Phenotypic functions, fitness variance, set fitness, declares methods used
+
+TSel Trait ........................ Initializes traits, selection pressures, get/set phenotype and fitness
+
+T Sel Trait.Header ................ Selection traits/pressures, declares variables, phenotypic functions
 
 
 
