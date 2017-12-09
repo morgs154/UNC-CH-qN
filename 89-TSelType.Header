@@ -1,0 +1,62 @@
+/** @file tselectiontype.h
+*
+*/
+//---------------------------------------------------------------------------
+
+#ifndef tselectiontypeH
+#define tselectiontypeH
+//---------------------------------------------------------------------------
+#include "tselectiontrait.h"
+class TSelection;
+
+class TSelectionNeutral: public TSelectionTrait{
+  private:
+		double (TSelectionNeutral::* _func_ptr_get_fitness)();
+		double get_fitness_none();
+		double get_fitnessFactor();
+
+	public:
+		TSelectionNeutral(TSelection* s, const int& t){
+			TSelectionTrait::init(s, t);
+			init();
+		}
+		~TSelectionNeutral(){}
+		void init();
+
+		double get_fitness(){return (this->*_func_ptr_get_fitness)();}
+};
+
+class TSelectionStabilizing: public TSelectionTrait{
+	private:
+		double (TSelectionStabilizing::* _func_ptr_get_fitness)();
+		double get_fitness_none();
+		double get_fitnessFactor();
+
+	public:
+		TSelectionStabilizing(TSelection* s, const int& t){
+			TSelectionTrait::init(s, t);
+			init();
+		}
+		~TSelectionStabilizing(){}
+		void init();
+
+		double get_fitness(){return (this->*_func_ptr_get_fitness)();}
+};
+
+class TSelectionDirectional: public TSelectionTrait{
+	private:
+		double (TSelectionDirectional::* _func_ptr_get_fitness)();
+		double get_fitness_none();
+		double get_fitnessFactor();
+
+	public:
+		TSelectionDirectional(TSelection* s, const int& t){
+			TSelectionTrait::init(s, t);
+			init();
+		}
+		~TSelectionDirectional(){}
+		void init();
+
+		double get_fitness(){return (this->*_func_ptr_get_fitness)();}
+};
+#endif
