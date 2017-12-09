@@ -203,14 +203,28 @@ Tree .............................. Template tree data structure classes, get/se
 
 Tree.Header ....................... Template class to account for epistasis, declares variables used
 
-TSelection ........................ LCE fitness for indiv, sort based on fitness, initialize, environmental variance for 
+T Selection ....................... LCE fitness for indiv, sort based on fitness, initialize, environmental variance for 
                                     patch/trait 
 
-TSelection.Header ................. Phenotypic functions, fitness variance, set fitness, declares methods used
+T Selection.Header ................ Phenotypic functions, fitness variance, set fitness, declares methods used
 
-TSel Trait ........................ Initializes traits, selection pressures, get/set phenotype and fitness
+T Sel Trait ....................... Initializes traits, selection pressures, get/set phenotype and fitness
 
 T Sel Trait.Header ................ Selection traits/pressures, declares variables, phenotypic functions
+
+T Sel Type ........................ Sets selection optima/intensity for neutral/stabilizing/directional, impact on fitness
+
+T Sel Type.Header ................. Declares classes/methods
+
+T String .......................... Formats comments and white space, file info, converts matrix to string, extends/condenses sequences
+
+T String.Header ................... Number to string conversion, file reading
+
+T Dispersal ....................... Evolving dispersal trait for both sexes, inheritance
+
+T Neutral ......................... Cstor, add parameters, read allelic files, differing mutation rates, load file/stat services
+                                    various operator functions, initialize and set StatHandlers
+
 
 
 
