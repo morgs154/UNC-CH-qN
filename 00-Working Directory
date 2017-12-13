@@ -225,8 +225,19 @@ T Dispersal ....................... Evolving dispersal trait for both sexes, inh
 T Neutral ......................... Cstor, add parameters, read allelic files, differing mutation rates, load file/stat services
                                     various operator functions, initialize and set StatHandlers
 
+T Neutral.Header .................. Declares methods, prototype neutral trait class, uses FileHandler and StatHandler to save neutral 
+                                    markers for FSTAT 
 
+T Quanti .......................... Setters, cstor, initializes parameter, resets b/w replication/simulations, initializes metapop, sets
+                                    defines genetic map, sets mutation function, allelic file, dominance/epistatic effect, sets fitness
+                                    loads FileServices, IMM mutation model, allelic frequencies/values, variance, writes file output,
+                                    various operators, declare genotype/phenotype, File/Stat Handlers, Additive genetics, mean/var genotype
+                                    and genotype, calc Qst 
 
+T Quanti.Header .................. Interprets allelic values, prototype trait class, declares variables/methods, File/StatHandler,  
+
+T Trait .......................... Indexes traits, initializes sequences, initializes allelic array, set mutation rates, mutation models,
+                                   derived classes, set loci positions, types of inheritance, builds a super chromosome
 
 
 X1-DMI    Set parameters for haploid and diploid, incompatibility table, load/set genotype/stat files, initates sequence, inheritance, 
