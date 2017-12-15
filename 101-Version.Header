@@ -1,0 +1,12 @@
+/** @file version.h
+*
+*/
+
+#define RELEASE 1
+#define REVISION 0
+#define MINOR_VERSION 4
+#define TEMP_VERSION ""
+
+#define VERSION_DATE __DATE__//"[08 May 2007]"       __DATE__ /__TIME__ /__TIMESTAMP__
+#define VERSION_TIME __TIME__//"[08 May 2007]"       __DATE__ /__TIME__ /__TIMESTAMP__
+
