@@ -239,9 +239,19 @@ T Quanti.Header .................. Interprets allelic values, prototype trait cl
 T Trait .......................... Indexes traits, initializes sequences, initializes allelic array, set mutation rates, mutation models,
                                    derived classes, set loci positions, types of inheritance, builds a super chromosome
 
+T Trait.Header ................... Interface for all traits types, doesn't include genetic architecture (uses pointers for structure),
+                                   recombination map w/ needed vectors, mutations, pairs genotypes and phenotypes, trait setter, static
+                                   trait parameters, inheritance procedure
+                                   
+T Tree.Header .................... Template tree class, pointers to different values to progress through array of values
 
-X1-DMI    Set parameters for haploid and diploid, incompatibility table, load/set genotype/stat files, initates sequence, inheritance, 
-mutations, viability, LCE (initial, spatial pattens)
-X2 Header   Decares variables and methods(getters/setters), inheritance/mutation routines, record genotype to txt file, statHandler,initialize
+Type.Header ...................... Age class flags, trait and parameter types
+
+Version.Header ................... Imports and updates the different versions of qN
+
+DMI ............................. Set parameters for haploid and diploid, incompatibility table, load/set genotype/stat files, initates 
+                                  sequence, inheritance, mutations, viability, LCE (initial, spatial pattens)
+DMI.Header ...................... Decares variables and methods(getters/setters), inheritance/mutation routines, record genotype to txt 
+                                  file, statHandler,initialize
 
 
