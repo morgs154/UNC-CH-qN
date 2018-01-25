@@ -79,12 +79,12 @@ MTRand ........................... Mersenne Twister Random number generator, ini
 MTRand.Header .................... Declares various constructors w/ seeds, use bits to gen ints, open intervals
 
 Exception Handler ................ Throws exceptions for simulation, tracer, base class to derived class, stack, Janitor, run time error,
-                                   various logic errors, 
+                                   various logic errors
 
 Exception Handler.Header ......... Defines exception designs (try, throw, catch), derive from BaseException, Janitor class, checks
                                    classes/arrays/objects, some runtime/logic errors
                                    
-Newmat.Header ........................... Newmat matrix manipuation library- defines matrix segments, math functions; locate code not used by
+Newmat.Header .................... Newmat matrix manipuation library- defines matrix segments, math functions; locate code not used by
                                    tests; matrix types and conversions, routines; working classes for matrices, reverse order
 
 Newmat Funct ..................... Manipulating matrices, checks if valid, square, symmetric, skew, upper, lower, diagonal, band, and
@@ -107,7 +107,7 @@ Newmat Binary .................... Solves routines, binary operations, add/subra
 
 Newmat Scalar .................... LU decomposition, scalar functions, min/max routines, determinants
 
-Newmat Output .................... for G++ compliers (Linux), operators
+Newmat Output .................... For G++ compliers (Linux), operators
 
 Newmat Adv.Header................. Advanced functions and applications (ex: Cholesky), sorts, Jacobi, Eigen, FFT, Helmert 
 
@@ -158,7 +158,7 @@ Service.Header ................... Interface for files/stats of simulation, upda
 
 SimComp.Header ................... Interface for basic simulation aspects including parameters
 
-Simulation ....................... Loads/builds/resets initial set up of genetic map, paramaters, stat/file handlers, LCE, reads the 
+Simulation .......................... Loads/builds/resets initial set up of genetic map, paramaters, stat/file handlers, LCE, reads the 
                                    input file, set seed, runs simulation and loops through reps, print log file, default templates
 
 Simulation.Header ................ Sets up metapop and simulation components, declares SimRunner class, builds param list and pop, 
@@ -172,7 +172,7 @@ Stat Rec Base.Header ............. Stores stat values in matrix, sets rows/colum
 
 Stat Handler ..................... Template stat handler classes, addition per patch/loci, stores/writes output file, FSTAT functions-
                                    allele freq, heterozygosity, fitness, Fst, fixation, Weir Cockerham per patch/total; coancestry 
-                                   analysis, kinship, 
+                                   analysis, kinship 
 
 Stat Handler.Header .............. Computes/stores stats for SimComponents through StatRecorder, calc kinship/coancestry coefficients,
                                    declares getters/setters
@@ -253,5 +253,3 @@ DMI ............................. Set parameters for haploid and diploid, incomp
                                   sequence, inheritance, mutations, viability, LCE (initial, spatial pattens)
 DMI.Header ...................... Decares variables and methods(getters/setters), inheritance/mutation routines, record genotype to txt 
                                   file, statHandler,initialize
-
-
