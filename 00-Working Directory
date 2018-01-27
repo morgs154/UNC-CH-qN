@@ -13,21 +13,21 @@ ControlWordsBits.Header ............ Used to create and manipulate settings opti
 
 Cholesky ........................... Cholesky decomposition algorithm for a symmetric matrix
 
-File Handler ....................... Checks needed parameters to run, sets file path in directory, composes data for allele/loci/
+File Handler ....................... ..Checks needed parameters to run, sets file path in directory, composes data for allele/loci/
                                      indiv/patch, and ends simulation
 
 File Handler.Header ................ I/O Interfeace for BasicSim, focus on periodic parameters and outputs, sets handler parameters
 
-File Parser ........................ Reads in and adds parameter w/ argument to map, ends program if settings/ext/param cannot be read
+File Parser ........................ ..Reads in and adds parameter w/ argument to map, ends program if settings/ext/param cannot be read
 
-File Parser.Header ................. Reads in input and passes it to Steam Parser, contians paramters of FileParser
+File Parser.Header ................. Reads in input and passes it to Steam Parser, contains paramters of FileParser
 
-File Services ...................... Outputs log file for sim-records parameters
+File Services ...................... ..Outputs log file for sim-records parameters
 
-File Services.Header ............... Composes output files, saves parameters, checks file names, loads/attaches filehandlers
+File Services.Header ............... ..Composes output files, saves parameters, checks file names, loads/attaches filehandlers
 
 Handler.Header ..................... Observer for FileHandler and StatHandler, initializes state, updates handler state, and patch pop
-                                     to compute stas in StatHandler
+                                     to compute stats in StatHandler
                                      
 File HHolder ....................... QR, QRZ and QRT decompositions of matricies, updates/extends othagonal functtion
 
@@ -53,7 +53,7 @@ LCE Dispersal ..................... Takes in user parameters, dispersal matricie
                                     
 LCE Dispersal.Header .............. Stores dispersal matricies/param/model, moves offspring to patch containers
 
-LCE Misc .......................... Notifies File/Stat Services, loop through gens and sum occurrances, temporal changes, aging, patch
+LCE Misc .......................... ..Notifies File/Stat Services, loop through gens and sum occurrances, temporal changes, aging, patch
                                     extinction, reg sel/K, prints Stats
                                     
 LCE Misc.Header ................... Interface notifies file handlers to update for output, reg poppost-dispersal, removes adults from
@@ -154,7 +154,7 @@ Precision.Header ................ Sets max/min of types(w/ exponents), holds dif
 RandGen.Header ................... Holds random number generator class, produces a number from across various distributions, looks at 
                                    deviates, cumulative array, returns values to normal distribution
 
-Service.Header ................... Interface for files/stats of simulation, updates Observers
+Service.Header ................... ..Interface for files/stats of simulation, updates Observers
 
 SimComp.Header ................... Interface for basic simulation aspects including parameters
 
@@ -166,7 +166,7 @@ Simulation.Header ................ Sets up metapop and simulation components, de
                                    
 Sort ............................. Different sort algorithms including quick, insert, descending/ascending, also sorts diagonal matrix
 
-Stat Rec Base .................... Records stats throughout the simulation, sums them up as needed, adds/stores values per generation/rep 
+Stat Rec Base .................... ..Records stats throughout the simulation, sums them up as needed, adds/stores values per generation/rep 
 
 Stat Rec Base.Header ............. Stores stat values in matrix, sets rows/columns, checks if needs to be stored/calc, retrieval methods
 
