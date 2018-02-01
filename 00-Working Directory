@@ -63,7 +63,7 @@ LCE.Header ........................ Explanation of LCE, can link LCE to trait
 
 Main .............................. Sets up simulation display, runtime errors
 
-MetaPop .......................... Initialize variables, add in parameters-K, size, enviro, sel, temporal changes, patch value/matrix
+MetaPop .......................... ..Initialize variables, add in parameters-K, size, enviro, sel, temporal changes, patch value/matrix
                                     LCE, replicate loop, density dep disp, (K/sel sex specific); genetic map output, Fstats, counters  
 
 MetaPop.Header ................... Loops of LCE, generations, and replicates, index of age classes, selection values, builds pop from
