@@ -1,6 +1,6 @@
 /** @file LCEbreed.cpp
 *
-*/
+
 
 #include <deque>
 #include "lce_breed.h"
@@ -871,3 +871,4 @@ LCE_Breed::reset_sex_after_phentoype(age_idx AGE)
 
 /*_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/*/
 
+*/
