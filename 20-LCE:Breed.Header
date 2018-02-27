@@ -2,15 +2,7 @@
 *
 */
 
-/**#ifndef lce_breedH
-#define lce_breedH
-#include "lifecycleevent.h"
 
-#include "random.h"
-#include "tselection.h"
-
-class TSelection;
-**/
 // Class LCE_Breed
 //
 /**Class for the breeding (and mating) life cycle events.
